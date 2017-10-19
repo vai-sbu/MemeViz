@@ -1,0 +1,240 @@
+{
+ "kind": "customsearch#search",
+ "url": {
+  "type": "application/json",
+  "template": "https://www.googleapis.com/customsearch/v1?q={searchTerms}&num={count?}&start={startIndex?}&lr={language?}&safe={safe?}&cx={cx?}&cref={cref?}&sort={sort?}&filter={filter?}&gl={gl?}&cr={cr?}&googlehost={googleHost?}&c2coff={disableCnTwTranslation?}&hq={hq?}&hl={hl?}&siteSearch={siteSearch?}&siteSearchFilter={siteSearchFilter?}&exactTerms={exactTerms?}&excludeTerms={excludeTerms?}&linkSite={linkSite?}&orTerms={orTerms?}&relatedSite={relatedSite?}&dateRestrict={dateRestrict?}&lowRange={lowRange?}&highRange={highRange?}&searchType={searchType}&fileType={fileType?}&rights={rights?}&imgSize={imgSize?}&imgType={imgType?}&imgColorType={imgColorType?}&imgDominantColor={imgDominantColor?}&alt=json"
+ },
+ "queries": {
+  "request": [
+   {
+    "title": "Google Custom Search - obesity in america",
+    "totalResults": "73900000",
+    "searchTerms": "obesity in america",
+    "count": 10,
+    "startIndex": 1,
+    "inputEncoding": "utf8",
+    "outputEncoding": "utf8",
+    "safe": "off",
+    "cx": "003390134866451521350:puwyqnbwa6q",
+    "searchType": "image"
+   }
+  ],
+  "nextPage": [
+   {
+    "title": "Google Custom Search - obesity in america",
+    "totalResults": "73900000",
+    "searchTerms": "obesity in america",
+    "count": 10,
+    "startIndex": 11,
+    "inputEncoding": "utf8",
+    "outputEncoding": "utf8",
+    "safe": "off",
+    "cx": "003390134866451521350:puwyqnbwa6q",
+    "searchType": "image"
+   }
+  ]
+ },
+ "context": {
+  "title": "Google"
+ },
+ "searchInformation": {
+  "searchTime": 0.442876,
+  "formattedSearchTime": "0.44",
+  "totalResults": "73900000",
+  "formattedTotalResults": "73,900,000"
+ },
+ "items": [
+  {
+   "kind": "customsearch#result",
+   "title": "Obesity Epidemic in America, Statistics & Facts - Dukan Diet",
+   "htmlTitle": "<b>Obesity</b> Epidemic in <b>America</b>, Statistics &amp; Facts - Dukan Diet",
+   "link": "http://media.dukandiet.com/articles/the-dukan-diet/dukan-files/obesity-in-america/overweight-rates-in-america.jpg",
+   "displayLink": "www.dukandiet.com",
+   "snippet": "Obesity in America Facts. “",
+   "htmlSnippet": "<b>Obesity</b> in <b>America</b> Facts. “",
+   "mime": "image/jpeg",
+   "image": {
+    "contextLink": "http://www.dukandiet.com/obesity-epidemic-in-america",
+    "height": 354,
+    "width": 560,
+    "byteSize": 17623,
+    "thumbnailLink": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT2AbjHPVntE6eFa7G-_q5sKFnAYxcJOrmZoamVbTjq54KDDJXDD8U-Yuo",
+    "thumbnailHeight": 84,
+    "thumbnailWidth": 133
+   }
+  },
+  {
+   "kind": "customsearch#result",
+   "title": "Changing Obesity in America | Delish Dining",
+   "htmlTitle": "Changing <b>Obesity</b> in <b>America</b> | Delish Dining",
+   "link": "http://spatterson3.blogs.plymouth.edu/files/2013/04/obesity.png",
+   "displayLink": "spatterson3.blogs.plymouth.edu",
+   "snippet": "... an obese teenager is 70% ...",
+   "htmlSnippet": "... an <b>obese</b> teenager is 70% ...",
+   "mime": "image/png",
+   "fileFormat": "Image Document",
+   "image": {
+    "contextLink": "http://spatterson3.blogs.plymouth.edu/2013/09/23/changing-obesity-in-america/",
+    "height": 484,
+    "width": 615,
+    "byteSize": 109716,
+    "thumbnailLink": "https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcROUvR1d0HALf1bslZgIcJSjFsJzmMt9Si7xvhq-5QWd8YFMZd_1d1eau4",
+    "thumbnailHeight": 107,
+    "thumbnailWidth": 136
+   }
+  },
+  {
+   "kind": "customsearch#result",
+   "title": "Obesity in America is on the Rise; Here's What You Can Do to ...",
+   "htmlTitle": "<b>Obesity</b> in <b>America</b> is on the Rise; Here&#39;s What You Can Do to ...",
+   "link": "http://media.fooducate.com/comments/images/558AA36F-F3F8-64A5-4C64-987A3857B3DA.jpeg",
+   "displayLink": "blog.fooducate.com",
+   "snippet": "... America's obesity ...",
+   "htmlSnippet": "... <b>America&#39;s obesity</b> ...",
+   "mime": "image/jpeg",
+   "image": {
+    "contextLink": "http://blog.fooducate.com/2015/06/24/obesity-in-america-is-on-the-rise-heres-what-you-can-do-to-protect-yourself/",
+    "height": 1000,
+    "width": 808,
+    "byteSize": 95628,
+    "thumbnailLink": "https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcRmZPpDZ6ze_TWXokj-0f3WLQL_-PyXemcpH1Qyz7blcgbgi3noFcDAQdGf",
+    "thumbnailHeight": 149,
+    "thumbnailWidth": 120
+   }
+  },
+  {
+   "kind": "customsearch#result",
+   "title": "F-F-F-Fat… Obesity in America [Mini-infographic] « Stokely Baksh",
+   "htmlTitle": "F-F-F-Fat… <b>Obesity</b> in <b>America</b> [Mini-infographic] « Stokely Baksh",
+   "link": "http://www.fainaidea.com/wp-content/uploads/2016/09/buclin.jpg",
+   "displayLink": "www.stokelybaksh.com",
+   "snippet": "Shot ...",
+   "htmlSnippet": "Shot ...",
+   "mime": "image/jpeg",
+   "image": {
+    "contextLink": "http://www.stokelybaksh.com/2012/09/f-f-f-fat-obesity-in-america-mini-infographic/",
+    "height": 1294,
+    "width": 1000,
+    "byteSize": 156577,
+    "thumbnailLink": "https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcTa7NuBy3ChFL9_WoN94WTRfZD9WPxEFHSlPxU4F8GVNzahGaF4DP2q792x",
+    "thumbnailHeight": 150,
+    "thumbnailWidth": 116
+   }
+  },
+  {
+   "kind": "customsearch#result",
+   "title": "Obesity in America – THE ECHO",
+   "htmlTitle": "<b>Obesity</b> in <b>America</b> – THE ECHO",
+   "link": "http://www.uhsecho.com/wp-content/uploads/2013/03/map_tape.jpg",
+   "displayLink": "www.uhsecho.com",
+   "snippet": "http://obesityinamerica.org/wp ...",
+   "htmlSnippet": "http://obesityinamerica.org/wp ...",
+   "mime": "image/jpeg",
+   "image": {
+    "contextLink": "http://www.uhsecho.com/2013/03/obesity-in-america/",
+    "height": 255,
+    "width": 279,
+    "byteSize": 58151,
+    "thumbnailLink": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSw_WxtXNJHGLXqdeHsPNxgKdZP6fKBrnEnMcjXw3pm5skRIb5hxwwcoEA",
+    "thumbnailHeight": 104,
+    "thumbnailWidth": 114
+   }
+  },
+  {
+   "kind": "customsearch#result",
+   "title": "Obesity Epidemic in America, Statistics & Facts - Dukan Diet",
+   "htmlTitle": "<b>Obesity</b> Epidemic in <b>America</b>, Statistics &amp; Facts - Dukan Diet",
+   "link": "http://media.dukandiet.com/articles/the-dukan-diet/dukan-files/obesity-in-america/percentage-of-obese-population-by-country.jpg",
+   "displayLink": "www.dukandiet.com",
+   "snippet": "Percentage of Obese Population ...",
+   "htmlSnippet": "Percentage of <b>Obese</b> Population ...",
+   "mime": "image/jpeg",
+   "image": {
+    "contextLink": "http://www.dukandiet.com/obesity-epidemic-in-america",
+    "height": 568,
+    "width": 401,
+    "byteSize": 27571,
+    "thumbnailLink": "https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcR2xK2JexHKCAZB-LpSA6NmjeTDkx3KGBF4LYX8hGt49hhfFSXYdTu9tCI",
+    "thumbnailHeight": 134,
+    "thumbnailWidth": 95
+   }
+  },
+  {
+   "kind": "customsearch#result",
+   "title": "Obesity in Teenagers Project | Obesity in America",
+   "htmlTitle": "<b>Obesity</b> in Teenagers Project | <b>Obesity</b> in <b>America</b>",
+   "link": "https://slider517.files.wordpress.com/2013/12/obesity-overweight-statistics-diet-plan.jpg",
+   "displayLink": "slider517.wordpress.com",
+   "snippet": "Image Image Image",
+   "htmlSnippet": "Image Image Image",
+   "mime": "image/jpeg",
+   "image": {
+    "contextLink": "https://slider517.wordpress.com/2013/12/09/obesity-in-teenagers-project/",
+    "height": 562,
+    "width": 698,
+    "byteSize": 256004,
+    "thumbnailLink": "https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcRoh17reKi9HKwh3b2s304HoSnC42FpPNRVPKDGyR6DLXSikZHJSW7aHPx-",
+    "thumbnailHeight": 112,
+    "thumbnailWidth": 139
+   }
+  },
+  {
+   "kind": "customsearch#result",
+   "title": "Obesity in America by Ricky Linn | Colossal",
+   "htmlTitle": "<b>Obesity</b> in <b>America</b> by Ricky Linn | Colossal",
+   "link": "http://www.thisiscolossal.com/wp-content/uploads/2010/10/tumblr_lagzdmtyPi1qcb6kno1_1280.png",
+   "displayLink": "www.thisiscolossal.com",
+   "snippet": "Obesity in America by Ricky ...",
+   "htmlSnippet": "<b>Obesity</b> in <b>America</b> by Ricky ...",
+   "mime": "image/png",
+   "fileFormat": "Image Document",
+   "image": {
+    "contextLink": "http://www.thisiscolossal.com/2010/10/obesity-in-america-by-ricky-linn/",
+    "height": 803,
+    "width": 587,
+    "byteSize": 67177,
+    "thumbnailLink": "https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcT0esz0Ylon9a5kWgiDEXOyrno0YFmna64de2DO-CbuoIwE9fXDYNW0c3bM",
+    "thumbnailHeight": 143,
+    "thumbnailWidth": 105
+   }
+  },
+  {
+   "kind": "customsearch#result",
+   "title": "Obesity in America: Healthier, not healthy | The Economist",
+   "htmlTitle": "<b>Obesity</b> in <b>America</b>: Healthier, not healthy | The Economist",
+   "link": "http://cdn.static-economist.com/sites/default/files/images/2014/01/blogs/democracy-america/20140125_usp505.jpg",
+   "displayLink": "www.economist.com",
+   "snippet": "Obesity in America: Healthier, ...",
+   "htmlSnippet": "<b>Obesity</b> in <b>America</b>: Healthier, ...",
+   "mime": "image/jpeg",
+   "image": {
+    "contextLink": "http://www.economist.com/blogs/democracyinamerica/2014/01/obesity-america",
+    "height": 335,
+    "width": 595,
+    "byteSize": 31015,
+    "thumbnailLink": "https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcTiGZF-eP5jtvzg_FfvY6UeGQOvL-IUS5oMXIjIa9X2EGskOR5uKRkAHfLR",
+    "thumbnailHeight": 76,
+    "thumbnailWidth": 135
+   }
+  },
+  {
+   "kind": "customsearch#result",
+   "title": "All You Can Eat - Earth in Transition",
+   "htmlTitle": "All You Can Eat - Earth in Transition",
+   "link": "http://www.earthintransition.org/wp-content/uploads/2012/05/Obesity-in-America-1-051012.jpg",
+   "displayLink": "www.earthintransition.org",
+   "snippet": "Obesity-in-America-1-051012",
+   "htmlSnippet": "<b>Obesity</b>-in-<b>America</b>-1-051012",
+   "mime": "image/jpeg",
+   "image": {
+    "contextLink": "http://www.earthintransition.org/2012/05/all-you-can-eat/",
+    "height": 280,
+    "width": 560,
+    "byteSize": 72157,
+    "thumbnailLink": "https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcR6KZ8DROwqtfI1lreqmb1FEynsK0abjuOjw8QFg-H8eZdmSm8yGDd0CffY",
+    "thumbnailHeight": 67,
+    "thumbnailWidth": 133
+   }
+  }
+ ]
+ }

@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/MemeViz">
+        <file>dummybk.png</file>
+        <file>pie-sample.png</file>
+    </qresource>
+</RCC>
