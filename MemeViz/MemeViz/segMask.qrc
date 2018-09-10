@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/segMask">
+        <file>Resources/background.png</file>
+        <file>Resources/foreground.png</file>
+        <file>Resources/foregroundbox.png</file>
+    </qresource>
+</RCC>
