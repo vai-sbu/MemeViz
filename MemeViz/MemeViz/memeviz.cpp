@@ -506,6 +506,10 @@ void MemeViz::on_loadButtonData_clicked()
 				linearReg();
 			}			
 		}
+		else if (chartType == Pie)
+		{
+			this->drawPieChart();
+		}
 		this->imageSearch();
 	}
 	//Create the chart title
@@ -1724,32 +1728,32 @@ cv::Mat MemeViz::fillPie()
 	drawing.copyTo(foreground, mask);
 
 	//Merge the chart with the image in LAB color space
-	//cvtColor(image, image, CV_BGR2Lab);
-	//cvtColor(foreground, foreground, CV_RGB2Lab);
+	cvtColor(image, image, CV_BGR2Lab);
+	cvtColor(foreground, foreground, CV_RGB2Lab);
 
 	//Merge the chart with the image in HSV color space
-	cvtColor(image, image, CV_BGR2HSV);
-	cvtColor(foreground, foreground, CV_BGR2HSV);
+	//cvtColor(image, image, CV_BGR2HSV);
+	//cvtColor(foreground, foreground, CV_BGR2HSV);
 
 	for (int x = 0; x < mask.rows; x++)
 	{
 		for (int y = 0; y < mask.cols; y++)
 		{
 			cv::Vec3b intensity = foreground.at<cv::Vec3b>(x, y);
-			if (intensity.val[2] != 0)
+			if (intensity.val[0] != 0)
 			{
 				//For LAB
-				//image.at<cv::Vec3b>(x, y).val[1] = intensity.val[1];
-				//image.at<cv::Vec3b>(x, y).val[2] = intensity.val[2];
+				image.at<cv::Vec3b>(x, y).val[1] = intensity.val[1];
+				image.at<cv::Vec3b>(x, y).val[2] = intensity.val[2];
 				
 				//For HSV
-				image.at<cv::Vec3b>(x, y).val[0] = intensity.val[0];								
+				//image.at<cv::Vec3b>(x, y).val[0] = intensity.val[0];								
 			}
 		}
 	}
 
-	//cvtColor(image, image, CV_Lab2BGR);
-	cvtColor(image, image, CV_HSV2BGR);
+	cvtColor(image, image, CV_Lab2BGR);
+	//cvtColor(image, image, CV_HSV2BGR);
 
 	// Labelling the chart
 	scene_meme->removePieLabels();
@@ -3063,8 +3067,12 @@ void MemeViz::fillBarChart(int idx)
 			cv::Vec3b intensity = drawing_tmp.at<cv::Vec3b>(x, y);
 			if (intensity.val[0] != 0)
 			{
+				image.at<cv::Vec3b>(x, y).val[0] = image.at<cv::Vec3b>(x, y).val[0]+10;
 				image.at<cv::Vec3b>(x, y).val[1] = intensity.val[1];
 				image.at<cv::Vec3b>(x, y).val[2] = intensity.val[2];
+				//image.at<cv::Vec3b>(x, y).val[0] = image.at<cv::Vec3b>(x, y).val[0] +25;
+				//image.at<cv::Vec3b>(x, y).val[1] = image.at<cv::Vec3b>(x, y).val[1] + 25;
+				//image.at<cv::Vec3b>(x, y).val[2] = image.at<cv::Vec3b>(x, y).val[2] + 25;
 			}
 		}
 	}

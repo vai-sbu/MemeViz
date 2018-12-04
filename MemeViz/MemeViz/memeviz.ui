@@ -2614,7 +2614,7 @@ QPushButton#pushButton_barMaskColor:pressed {
        </font>
       </property>
       <property name="maximum">
-       <double>100000.000000000000000</double>
+       <double>100000000000.000000000000000</double>
       </property>
      </widget>
      <widget class="QDoubleSpinBox" name="doubleSpinBox_yMinBarFill">

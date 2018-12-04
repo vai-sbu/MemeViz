@@ -1,8 +1,37 @@
 #ifndef COLORBREWER_H
 #define COLORBREWER_H
 
-static std::vector< char* > brewerNames = { "YlGn", "YlGnBu", "GnBu", "BuGn", "PuBuGn", "PuBu", "BuPu", "RdPu", "PuRd", "OrRd", "YlOrRd", "YlOrBr", "Purples", "Blues", "Greens", "Oranges", "Reds", "Greys", "PuOr", "BrBG", "PRGn", "PiYG", "RdBu", "RdGy", "RdYlBu", "Spectral", "RdYlGn", "Accent", "Dark2", "Paired", "Pastel1", "Pastel2", "Set1", "Set2", "Set3" };
+static std::vector< char* > brewerNames = { "Set1", "Set2", "Set3", "YlGn", "YlGnBu", "GnBu", "BuGn", "PuBuGn", "PuBu", "BuPu", "RdPu", "PuRd", "OrRd", "YlOrRd", "YlOrBr", "Purples", "Blues", "Greens", "Oranges", "Reds", "Greys", "PuOr", "BrBG", "PRGn", "PiYG", "RdBu", "RdGy", "RdYlBu", "Spectral", "RdYlGn", "Accent", "Dark2", "Paired", "Pastel1", "Pastel2" };
  static std::vector<std::vector<std::vector< char* >>> brewer = {
+{
+	 { "#e41a1c", "#377eb8", "#4daf4a" },
+	 { "#e41a1c", "#377eb8", "#4daf4a", "#984ea3" },
+	 { "#e41a1c", "#377eb8", "#4daf4a", "#984ea3", "#ff7f00" },
+	 { "#e41a1c", "#377eb8", "#4daf4a", "#984ea3", "#ff7f00", "#ffff33" },
+	 { "#e41a1c", "#377eb8", "#4daf4a", "#984ea3", "#ff7f00", "#ffff33", "#a65628" },
+	 { "#e41a1c", "#377eb8", "#4daf4a", "#984ea3", "#ff7f00", "#ffff33", "#a65628", "#f781bf" },
+	 { "#e41a1c", "#377eb8", "#4daf4a", "#984ea3", "#ff7f00", "#ffff33", "#a65628", "#f781bf", "#999999" }
+},
+{
+	 { "#66c2a5", "#fc8d62", "#8da0cb" },
+	 { "#66c2a5", "#fc8d62", "#8da0cb", "#e78ac3" },
+	 { "#66c2a5", "#fc8d62", "#8da0cb", "#e78ac3", "#a6d854" },
+	 { "#66c2a5", "#fc8d62", "#8da0cb", "#e78ac3", "#a6d854", "#ffd92f" },
+	 { "#66c2a5", "#fc8d62", "#8da0cb", "#e78ac3", "#a6d854", "#ffd92f", "#e5c494" },
+	 { "#66c2a5", "#fc8d62", "#8da0cb", "#e78ac3", "#a6d854", "#ffd92f", "#e5c494", "#b3b3b3" }
+},
+{
+	 { "#8dd3c7", "#ffffb3", "#bebada" },
+	 { "#8dd3c7", "#ffffb3", "#bebada", "#fb8072" },
+	 { "#8dd3c7", "#ffffb3", "#bebada", "#fb8072", "#80b1d3" },
+	 { "#8dd3c7", "#ffffb3", "#bebada", "#fb8072", "#80b1d3", "#fdb462" },
+	 { "#8dd3c7", "#ffffb3", "#bebada", "#fb8072", "#80b1d3", "#fdb462", "#b3de69" },
+	 { "#8dd3c7", "#ffffb3", "#bebada", "#fb8072", "#80b1d3", "#fdb462", "#b3de69", "#fccde5" },
+	 { "#8dd3c7", "#ffffb3", "#bebada", "#fb8072", "#80b1d3", "#fdb462", "#b3de69", "#fccde5", "#d9d9d9" },
+	 { "#8dd3c7", "#ffffb3", "#bebada", "#fb8072", "#80b1d3", "#fdb462", "#b3de69", "#fccde5", "#d9d9d9", "#bc80bd" },
+	 { "#8dd3c7", "#ffffb3", "#bebada", "#fb8072", "#80b1d3", "#fdb462", "#b3de69", "#fccde5", "#d9d9d9", "#bc80bd", "#ccebc5" },
+	 { "#8dd3c7", "#ffffb3", "#bebada", "#fb8072", "#80b1d3", "#fdb462", "#b3de69", "#fccde5", "#d9d9d9", "#bc80bd", "#ccebc5", "#ffed6f" }
+},
 {
 	 { "#f7fcb9", "#addd8e", "#31a354" },
 	 { "#ffffcc", "#c2e699", "#78c679", "#238443" },
@@ -308,35 +337,6 @@ static std::vector< char* > brewerNames = { "YlGn", "YlGnBu", "GnBu", "BuGn", "P
 	 { "#b3e2cd", "#fdcdac", "#cbd5e8", "#f4cae4", "#e6f5c9", "#fff2ae" },
 	 { "#b3e2cd", "#fdcdac", "#cbd5e8", "#f4cae4", "#e6f5c9", "#fff2ae", "#f1e2cc" },
 	 { "#b3e2cd", "#fdcdac", "#cbd5e8", "#f4cae4", "#e6f5c9", "#fff2ae", "#f1e2cc", "#cccccc" }
- },
- {
-	 { "#e41a1c", "#377eb8", "#4daf4a" },
-	 { "#e41a1c", "#377eb8", "#4daf4a", "#984ea3" },
-	 { "#e41a1c", "#377eb8", "#4daf4a", "#984ea3", "#ff7f00" },
-	 { "#e41a1c", "#377eb8", "#4daf4a", "#984ea3", "#ff7f00", "#ffff33" },
-	 { "#e41a1c", "#377eb8", "#4daf4a", "#984ea3", "#ff7f00", "#ffff33", "#a65628" },
-	 { "#e41a1c", "#377eb8", "#4daf4a", "#984ea3", "#ff7f00", "#ffff33", "#a65628", "#f781bf" },
-	 { "#e41a1c", "#377eb8", "#4daf4a", "#984ea3", "#ff7f00", "#ffff33", "#a65628", "#f781bf", "#999999" }
- },
- {
-	 { "#66c2a5", "#fc8d62", "#8da0cb" },
-	 { "#66c2a5", "#fc8d62", "#8da0cb", "#e78ac3" },
-	 { "#66c2a5", "#fc8d62", "#8da0cb", "#e78ac3", "#a6d854" },
-	 { "#66c2a5", "#fc8d62", "#8da0cb", "#e78ac3", "#a6d854", "#ffd92f" },
-	 { "#66c2a5", "#fc8d62", "#8da0cb", "#e78ac3", "#a6d854", "#ffd92f", "#e5c494" },
-	 { "#66c2a5", "#fc8d62", "#8da0cb", "#e78ac3", "#a6d854", "#ffd92f", "#e5c494", "#b3b3b3" }
- },
- {
-	 { "#8dd3c7", "#ffffb3", "#bebada" },
-	 { "#8dd3c7", "#ffffb3", "#bebada", "#fb8072" },
-	 { "#8dd3c7", "#ffffb3", "#bebada", "#fb8072", "#80b1d3" },
-	 { "#8dd3c7", "#ffffb3", "#bebada", "#fb8072", "#80b1d3", "#fdb462" },
-	 { "#8dd3c7", "#ffffb3", "#bebada", "#fb8072", "#80b1d3", "#fdb462", "#b3de69" },
-	 { "#8dd3c7", "#ffffb3", "#bebada", "#fb8072", "#80b1d3", "#fdb462", "#b3de69", "#fccde5" },
-	 { "#8dd3c7", "#ffffb3", "#bebada", "#fb8072", "#80b1d3", "#fdb462", "#b3de69", "#fccde5", "#d9d9d9" },
-	 { "#8dd3c7", "#ffffb3", "#bebada", "#fb8072", "#80b1d3", "#fdb462", "#b3de69", "#fccde5", "#d9d9d9", "#bc80bd" },
-	 { "#8dd3c7", "#ffffb3", "#bebada", "#fb8072", "#80b1d3", "#fdb462", "#b3de69", "#fccde5", "#d9d9d9", "#bc80bd", "#ccebc5" },
-	 { "#8dd3c7", "#ffffb3", "#bebada", "#fb8072", "#80b1d3", "#fdb462", "#b3de69", "#fccde5", "#d9d9d9", "#bc80bd", "#ccebc5", "#ffed6f" }
  }
 };
 #endif // COLORBREWER_H

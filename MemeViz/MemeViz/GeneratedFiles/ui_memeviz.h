@@ -1312,7 +1312,7 @@ public:
         doubleSpinBox_yMaxBarFill->setObjectName(QStringLiteral("doubleSpinBox_yMaxBarFill"));
         doubleSpinBox_yMaxBarFill->setGeometry(QRect(199, 452, 51, 22));
         doubleSpinBox_yMaxBarFill->setFont(font);
-        doubleSpinBox_yMaxBarFill->setMaximum(100000);
+        doubleSpinBox_yMaxBarFill->setMaximum(1e+11);
         doubleSpinBox_yMinBarFill = new QDoubleSpinBox(groupBox_BarFill);
         doubleSpinBox_yMinBarFill->setObjectName(QStringLiteral("doubleSpinBox_yMinBarFill"));
         doubleSpinBox_yMinBarFill->setGeometry(QRect(85, 452, 51, 22));
