@@ -13,6 +13,10 @@ MemeViz::MemeViz(QWidget *parent)
 	segM->setWindowFlags(Qt::FramelessWindowHint | Qt::Dialog);
 	segM->hide();
 
+	distH = new distortionHelp(this);
+	distH->setWindowFlags(Qt::FramelessWindowHint | Qt::Dialog);
+	distH->hide();
+
 	scene_meme = new SceneMeme(this);
 	scene_preview = new QGraphicsScene(this);
 	
@@ -22,16 +26,21 @@ MemeViz::MemeViz(QWidget *parent)
 
 	chart = 0;
 	chartTitle = 0;
-	chartType = Line;
+	chartType = Pie;
 	chartX = 10;
 	chartY = 10;
 
 	//Pie Chart Init
 	pieType = Rad;
+	divType = Radial;
 	pieRot = 0;
 	ui.label_pieRad->setStyleSheet("background: rgb(240, 240, 240);");
 	ui.label_pieAr->setStyleSheet("background: rgb(65, 65, 65);");
 	ui.label_pieArc->setStyleSheet("background: rgb(65, 65, 65);");
+
+	ui.label_fillRad->setStyleSheet("background: rgb(240, 240, 240);");
+	ui.label_fillHori->setStyleSheet("background: rgb(65, 65, 65);");
+	ui.label_fillVerti->setStyleSheet("background: rgb(65, 65, 65);");
 
 	pieColorButtons.push_back(ui.pushButton_pieColor_1);
 	pieColorButtons.push_back(ui.pushButton_pieColor_2);
@@ -48,15 +57,10 @@ MemeViz::MemeViz(QWidget *parent)
 	pieColorButtons.push_back(ui.pushButton_pieColor_13);
 	pieColorButtons.push_back(ui.pushButton_pieColor_14);
 	pieColorButtons.push_back(ui.pushButton_pieColor_15);
-	pieColorButtons.push_back(ui.pushButton_pieColor_16);
-	pieColorButtons.push_back(ui.pushButton_pieColor_17);
-	pieColorButtons.push_back(ui.pushButton_pieColor_18);
-	pieColorButtons.push_back(ui.pushButton_pieColor_19);
-	pieColorButtons.push_back(ui.pushButton_pieColor_20);
 
 	for (int i = 0;i < pieColorButtons.size();i++)
 	{
-		pieColorButtons[i]->setVisible(false);
+		pieColorButtons[i]->setVisible(true);
 	}
 	
 	//Line Chart Init
@@ -73,19 +77,17 @@ MemeViz::MemeViz(QWidget *parent)
 	//Bar Chart Init
 	barType = BarHeight;
 	ui.label_barArea->setStyleSheet("background: rgb(65, 65, 65);");
-	ui.label_barHeight->setStyleSheet("background: rgb(240, 240, 240);");
+	ui.label_barLength->setStyleSheet("background: rgb(240, 240, 240);");
 	barThick = 1;
 	barColor = QRgb(0x3675db);
 	barGlowThick = 1;
 	barGlowColor = QRgb(0x000000);
 	barGlowColor.setAlpha(150);
 	barOverlay = true;
-	ui.label_barOverlay->setStyleSheet("background: rgb(240, 240, 240);");
-	ui.label_barFill->setStyleSheet("background: rgb(65, 65, 65);");
 	barPercentage = true;
-	ui.label_barPercentage->setStyleSheet("background: rgb(240, 240, 240);");
-	ui.label_barValue->setStyleSheet("background: rgb(65, 65, 65);");
-	ui.groupBox_BarFill->setVisible(false);
+	//ui.label_barPercentage->setStyleSheet("background: rgb(240, 240, 240);");
+	//ui.label_barValue->setStyleSheet("background: rgb(65, 65, 65);");
+	ui.groupBox_BarFill->setVisible(true);
 	ui.groupBox_BarOverlay->setVisible(true);
 
 	ui.graphicsView_viz_meme->setScene(scene_meme);
@@ -96,18 +98,20 @@ MemeViz::MemeViz(QWidget *parent)
 	ui.comboBoxPiFiltImg_2->addItem("Smooth");
 	ui.comboBoxPiFiltImg_2->addItem("Grayscale");	
 
-	ui.label_pie->setVisible(false);
-	ui.label_line->setVisible(true);
-	ui.label_bar->setVisible(false);
-	
-	ui.groupBox_pie->setVisible(false);
-	ui.groupBox_line->setVisible(true);
-	ui.groupBox_bar->setVisible(false);
+	ui.label_pieFill->setVisible(true);
+	ui.label_barFill->setVisible(false);
+	ui.label_lineOverlay->setVisible(true);
+	ui.label_barOverlay->setVisible(false);
 
-	ui.distortion_trend->setVisible(true);
-	ui.distortion_area->setVisible(false);
-	ui.distortion_bar_overlay->setVisible(false);
-	ui.distortion_bar_fill->setVisible(false);
+	ui.groupBox_PieFill->setVisible(true);
+	ui.groupBox_BarFill->setVisible(false);
+	ui.label_lineOverlay->setVisible(true);
+	ui.label_barOverlay->setVisible(false);
+	
+	ui.groupBox_fill->setVisible(true);
+	ui.label_FillStyle->setVisible(true);
+	ui.groupBox_overlay->setVisible(false);
+	ui.label_OverlayStyle->setVisible(false);
 
 	ui.label_fontColor->setStyleSheet("background: rgb(0, 0, 0);");
 	ui.label_fontFill->setStyleSheet("background: rgb(255, 255, 255);");
@@ -134,8 +138,8 @@ MemeViz::MemeViz(QWidget *parent)
 
 	move(100, 100);
 
-	connect(this, SIGNAL(sendBackDrop(cv::Mat)),
-		segM, SLOT(onNewImageLoaded(cv::Mat)));	
+	connect(this, SIGNAL(sendBackDrop(cv::Mat)), segM, SLOT(onNewImageLoaded(cv::Mat)));	
+	connect(this, SIGNAL(sendDistortedVals(std::vector<std::string>, std::vector<double>, std::vector<double>)), distH, SLOT(onValsLoaded(std::vector<std::string>, std::vector<double>, std::vector<double>)));
 }
 
 MemeViz::~MemeViz()
@@ -217,7 +221,8 @@ void MemeViz::imageSearch()
 	// the HTTP request
 	QString query = QString::fromStdString(t_title);
 	query.replace(" ", "+");	
-	QNetworkRequest reqGoogle(QUrl(QString("https://www.googleapis.com/customsearch/v1?q=%1&cx=003390134866451521350%3Apuwyqnbwa6q&searchType=image&key=AIzaSyBXz0Crh5JnAL0FDzDXHNq7Kjjsv93Chds").arg(query)));
+	//Replace YOUR_KEY with your Google Custom Search API Key
+	QNetworkRequest reqGoogle(QUrl(QString("https://www.googleapis.com/customsearch/v1?q=%1&cx=003390134866451521350%3Apuwyqnbwa6q&searchType=image&key=YOUR_KEY").arg(query)));  
 	QNetworkReply *replyGoogle = mgrGoogle.get(reqGoogle);
 	eventLoopGoggle.exec(); // blocks stack until "finished()" has been called
 
@@ -484,7 +489,7 @@ void MemeViz::on_loadButtonData_clicked()
 			}
 			for (int i = 0;i < pieColorButtons.size();i++)
 			{
-				pieColorButtons[i]->setVisible(false);
+				pieColorButtons[i]->setVisible(true);
 			}
 			for (int i = 0; i < t_val.size(); i++)
 			{
@@ -1047,9 +1052,7 @@ void MemeViz::recieveMask(cv::Mat msk)
 		ui.labelimg->setPixmap(pix_backdrop);
 		cv::compare(mask, cv::GC_PR_FGD, mask, cv::CMP_EQ);
 		cv::threshold(mask, mask, 100, 255, cv::THRESH_BINARY);
-		this->computePieAngles();
-		QPixmap pix_viz = QPixmap::fromImage(mat_to_qimage_ref(this->fillPie(), QImage::Format_RGB888).rgbSwapped());
-		scene_meme->refreshBackrop(pix_viz);
+		this->fillSingleObject();		
 	}	
 	if (chartType == Bar)
 	{
@@ -1128,8 +1131,276 @@ void MemeViz::recieveMask(cv::Mat msk)
 	}
 }
 
+//Distortion Help
+void MemeViz::on_pushButton_distortionHelp_clicked()
+{
+	write_text_to_log_file("PopDistortionHelp\n");
+	distH->show();
+	distH->activateWindow();
+	//QMessageBox::information(0, "info", QString("%1").arg(t_val[0]));
+	emit this->sendDistortedVals(t_label, t_val, angles);
+}
+
+//Technique Select
+void MemeViz::on_pushButton_FillStyle_clicked()
+{
+	write_text_to_log_file("FillSelect\n");
+	chartType = Pie;
+	
+	ui.groupBox_fill->setVisible(true);
+	ui.label_FillStyle->setVisible(true);
+	ui.groupBox_overlay->setVisible(false);
+	ui.label_OverlayStyle->setVisible(false);
+
+	pieType = Rad;
+	ui.label_pieRad->setVisible(true);
+	ui.pushButton_pieRad->setVisible(true);
+	ui.label_pieRad->setStyleSheet("background: rgb(240, 240, 240);");
+	ui.label_pieAr->setStyleSheet("background: rgb(65, 65, 65);");
+	ui.label_pieArc->setStyleSheet("background: rgb(65, 65, 65);");
+	ui.pushButton_pieArc->setText(QString("Arc"));
+
+	ui.label_err1->setVisible(true);
+	ui.label_err1->setText(QString("Area:"));
+	ui.label_errVal1->setText(QString("0%"));
+	ui.label_errorPin1->setGeometry(0, 10, 4, 22);
+
+	ui.label_err2->setVisible(true);
+	ui.label_err2->setText(QString("Angle:"));
+	ui.label_errVal2->setText(QString("0%"));
+	ui.label_errorPin2->setGeometry(0, 47, 4, 22);
+
+
+	ui.label_err3->setVisible(true);
+	ui.label_err3->setText(QString("Arc Length:"));
+	ui.label_errVal3->setVisible(true);
+	ui.label_errVal3->setText(QString("0%"));
+	ui.label_errorPin3->setVisible(true);
+	ui.label_errorPin3->setGeometry(0, 84, 4, 22);
+	ui.label_errorBar3->setVisible(true);
+
+
+	ui.label_err4->setVisible(true);
+	ui.label_err4->setText(QString("Avg.:"));
+	ui.label_errVal4->setText(QString("0%"));
+	ui.label_errorPin4->setGeometry(0, 121, 4, 22);
+	
+	scene_meme->removePieLabels();
+	if (chartAdded)
+	{
+		chartAdded = false;
+		scene_meme->removeItem(chart);
+	}
+	if (dataLoaded)
+	{
+		drawPieChart(); 
+	}
+}
+
+void MemeViz::on_pushButton_OverlayStyle_clicked()
+{
+	write_text_to_log_file("OverlaySelect\n");
+	chartType = Line;
+
+	ui.groupBox_fill->setVisible(false);
+	ui.label_FillStyle->setVisible(false);
+	ui.groupBox_overlay->setVisible(true);
+	ui.label_OverlayStyle->setVisible(true);
+
+	ui.label_lineOverlay->setVisible(true);
+	ui.label_barOverlay->setVisible(false);
+
+	ui.groupBox_LineOverlay->setVisible(true);
+	ui.groupBox_BarOverlay->setVisible(false);
+
+
+	ui.label_err1->setVisible(true);
+	ui.label_err1->setText(QString("Orientation:"));
+	ui.label_errVal1->setText(QString("0%"));
+	ui.label_errorPin1->setGeometry(0, 10, 4, 22);
+
+	ui.label_err2->setVisible(true);
+	ui.label_err2->setText(QString("Height:"));
+	ui.label_errVal2->setText(QString("0%"));
+	ui.label_errorPin2->setGeometry(0, 47, 4, 22);
+
+
+	ui.label_err3->setVisible(false);
+	ui.label_err3->setText(QString("Arc Length:"));
+	ui.label_errVal3->setVisible(false);
+	ui.label_errVal3->setText(QString("0%"));
+	ui.label_errorPin3->setVisible(false);
+	ui.label_errorPin3->setGeometry(0, 84, 4, 22);
+	ui.label_errorBar3->setVisible(false);
+
+
+	ui.label_err4->setVisible(true);
+	ui.label_err4->setText(QString("Avg.:"));
+	ui.label_errVal4->setText(QString("0%"));
+	ui.label_errorPin4->setGeometry(0, 121, 4, 22);
+
+
+	scene_meme->removePieLabels();
+	if (loaded_img)
+	{
+		scene_meme->setCurrentBackdrop(filtimg);
+		QPixmap filt_backdrop = QPixmap::fromImage(mat_to_qimage_ref(filtimg.clone(), QImage::Format_RGB888).rgbSwapped());
+		scene_meme->refreshBackrop(filt_backdrop);
+	}
+
+	if (dataLoaded)
+	{
+		drawLineChart();
+	}
+}
+
+//Fill Technique Select
+
+void MemeViz::on_pushButton_fillRad_clicked() {
+	divType = Radial;
+	ui.label_fillRad->setStyleSheet("background: rgb(240, 240, 240);");
+	ui.label_fillVerti->setStyleSheet("background: rgb(65, 65, 65);");
+	ui.label_fillHori->setStyleSheet("background: rgb(65, 65, 65);");
+
+	pieType = Rad;
+	ui.label_pieRad->setVisible(true);
+	ui.pushButton_pieRad->setVisible(true);
+	ui.label_pieRad->setStyleSheet("background: rgb(240, 240, 240);");
+	ui.label_pieAr->setStyleSheet("background: rgb(65, 65, 65);");
+	ui.label_pieArc->setStyleSheet("background: rgb(65, 65, 65);");
+	ui.pushButton_pieArc->setText(QString("Arc"));
+
+	ui.label_err1->setVisible(true);
+	ui.label_err1->setText(QString("Area:"));
+	ui.label_errVal1->setText(QString("0%"));
+	ui.label_errorPin1->setGeometry(0, 10, 4, 22);
+
+	ui.label_err2->setVisible(true);
+	ui.label_err2->setText(QString("Angle:"));
+	ui.label_errVal2->setText(QString("0%"));
+	ui.label_errorPin2->setGeometry(0, 47, 4, 22);
+
+
+	ui.label_err3->setVisible(true);
+	ui.label_err3->setText(QString("Arc Length:"));
+	ui.label_errVal3->setVisible(true);
+	ui.label_errVal3->setText(QString("0%"));
+	ui.label_errorPin3->setVisible(true);
+	ui.label_errorPin3->setGeometry(0, 84, 4, 22);
+	ui.label_errorBar3->setVisible(true);
+
+
+	ui.label_err4->setVisible(true);
+	ui.label_err4->setText(QString("Avg.:"));
+	ui.label_errVal4->setText(QString("0%"));
+	ui.label_errorPin4->setGeometry(0, 121, 4, 22);
+	
+	this->fillSingleObject();
+
+}
+
+void MemeViz::on_pushButton_fillVerti_clicked() {
+	divType = Vertical;
+	ui.label_fillRad->setStyleSheet("background: rgb(65, 65, 65);");
+	ui.label_fillVerti->setStyleSheet("background: rgb(240, 240, 240);");
+	ui.label_fillHori->setStyleSheet("background: rgb(65, 65, 65);");
+
+	pieType = Arc;
+	ui.label_pieArc->setStyleSheet("background: rgb(240, 240, 240);");
+	ui.label_pieAr->setStyleSheet("background: rgb(65, 65, 65);");
+	ui.label_pieRad->setVisible(false);	
+	ui.pushButton_pieRad->setVisible(false);
+	ui.pushButton_pieArc->setText(QString("Length"));
+
+	ui.label_err1->setVisible(true);
+	ui.label_err1->setText(QString("Area:"));
+	ui.label_errVal1->setText(QString("0%"));
+	ui.label_errorPin1->setGeometry(0, 10, 4, 22);
+
+	ui.label_err2->setVisible(true);
+	ui.label_err2->setText(QString("Length:"));
+	ui.label_errVal2->setText(QString("0%"));
+	ui.label_errorPin2->setGeometry(0, 47, 4, 22);
+
+	ui.label_err3->setVisible(false);
+	ui.label_err3->setText(QString("Arc Length:"));
+	ui.label_errVal3->setVisible(false);
+	ui.label_errVal3->setText(QString("0%"));
+	ui.label_errorPin3->setVisible(false);
+	ui.label_errorPin3->setGeometry(0, 84, 4, 22);
+	ui.label_errorBar3->setVisible(false);
+
+	ui.label_err4->setVisible(true);
+	ui.label_err4->setText(QString("Avg.:"));
+	ui.label_errVal4->setText(QString("0%"));
+	ui.label_errorPin4->setGeometry(0, 121, 4, 22);
+
+	this->fillSingleObject();
+}
+
+void MemeViz::on_pushButton_fillHori_clicked() {
+	divType = Horizontal;
+	ui.label_fillRad->setStyleSheet("background: rgb(65, 65, 65);");
+	ui.label_fillVerti->setStyleSheet("background: rgb(65, 65, 65);");
+	ui.label_fillHori->setStyleSheet("background: rgb(240, 240, 240);");
+
+	pieType = Arc;
+	ui.label_pieArc->setStyleSheet("background: rgb(240, 240, 240);");
+	ui.label_pieAr->setStyleSheet("background: rgb(65, 65, 65);");
+	ui.label_pieRad->setVisible(false);
+	ui.pushButton_pieRad->setVisible(false);
+	ui.pushButton_pieArc->setText(QString("Length"));
+
+	ui.label_err1->setVisible(true);
+	ui.label_err1->setText(QString("Area:"));
+	ui.label_errVal1->setText(QString("0%"));
+	ui.label_errorPin1->setGeometry(0, 10, 4, 22);
+
+	ui.label_err2->setVisible(true);
+	ui.label_err2->setText(QString("Length:"));
+	ui.label_errVal2->setText(QString("0%"));
+	ui.label_errorPin2->setGeometry(0, 47, 4, 22);
+
+	ui.label_err3->setVisible(false);
+	ui.label_err3->setText(QString("Arc Length:"));
+	ui.label_errVal3->setVisible(false);
+	ui.label_errVal3->setText(QString("0%"));
+	ui.label_errorPin3->setVisible(false);
+	ui.label_errorPin3->setGeometry(0, 84, 4, 22);
+	ui.label_errorBar3->setVisible(false);
+
+	ui.label_err4->setVisible(true);
+	ui.label_err4->setText(QString("Avg.:"));
+	ui.label_errVal4->setText(QString("0%"));
+	ui.label_errorPin4->setGeometry(0, 121, 4, 22);
+
+	this->fillSingleObject();
+}
+
+void MemeViz::fillSingleObject() {
+	if (divType == Radial) {		
+		this->computePieAngles();
+		QPixmap pix_viz = QPixmap::fromImage(mat_to_qimage_ref(this->fillPie(), QImage::Format_RGB888).rgbSwapped());
+		scene_meme->refreshBackrop(pix_viz);
+	}
+	if (divType == Horizontal) {	
+
+		this->computeHorizontal();
+		QPixmap pix_viz = QPixmap::fromImage(mat_to_qimage_ref(this->fillHorizontal(), QImage::Format_RGB888).rgbSwapped());
+		scene_meme->refreshBackrop(pix_viz);
+	}
+	if (divType == Vertical) {
+
+		this->computeVertical();
+		QPixmap pix_viz = QPixmap::fromImage(mat_to_qimage_ref(this->fillVertical(), QImage::Format_RGB888).rgbSwapped());
+		scene_meme->refreshBackrop(pix_viz);
+	}
+	
+}
+
+
 //Pie Chart
-void MemeViz::on_pushButton_pie_clicked()
+void MemeViz::on_pushButton_pieFill_clicked()
 {
 	write_text_to_log_file("PieChartSelect\n");
 	//Check if the number of items is too large for a pie chart
@@ -1139,16 +1410,37 @@ void MemeViz::on_pushButton_pie_clicked()
 		chartType = Pie;
 
 		//Show controls for Pie and hide others
-		ui.label_pie->setVisible(true);
-		ui.label_line->setVisible(false);
-		ui.label_bar->setVisible(false);
-		ui.groupBox_pie->setVisible(true);
-		ui.groupBox_line->setVisible(false);
-		ui.groupBox_bar->setVisible(false);
-		ui.distortion_trend->setVisible(false);
-		ui.distortion_area->setVisible(true);
-		ui.distortion_bar_overlay->setVisible(false);
-		ui.distortion_bar_fill->setVisible(false);
+		ui.label_pieFill->setVisible(true);		
+		ui.label_barFill->setVisible(false);
+
+		ui.groupBox_PieFill->setVisible(true);
+		ui.groupBox_BarFill->setVisible(false);
+		
+		ui.label_err1->setVisible(true);
+		ui.label_err1->setText(QString("Area:"));
+		ui.label_errVal1->setText(QString("0%"));
+		ui.label_errorPin1->setGeometry(0, 10, 4, 22);
+
+		ui.label_err2->setVisible(true);		
+		ui.label_err2->setText(QString("Angle:"));
+		ui.label_errVal2->setText(QString("0%"));
+		ui.label_errorPin2->setGeometry(0, 47, 4, 22);
+
+
+		ui.label_err3->setVisible(true);
+		ui.label_err3->setText(QString("Arc Length:"));
+		ui.label_errVal3->setVisible(true);
+		ui.label_errVal3->setText(QString("0%"));
+		ui.label_errorPin3->setVisible(true);
+		ui.label_errorPin3->setGeometry(0, 84, 4, 22);
+		ui.label_errorBar3->setVisible(true);
+		
+
+		ui.label_err4->setVisible(true);
+		ui.label_err4->setText(QString("Avg.:"));
+		ui.label_errVal4->setText(QString("0%"));
+		ui.label_errorPin4->setGeometry(0, 121, 4, 22);
+
 
 		//Remove previous memes
 		if (chartAdded)
@@ -1176,9 +1468,7 @@ void MemeViz::on_pushButton_pieRad_clicked()
 	pieType = Rad;
 	if (loaded_img)
 	{
-		this->computePieAngles();
-		QPixmap pix_viz = QPixmap::fromImage(mat_to_qimage_ref(this->fillPie(), QImage::Format_RGB888).rgbSwapped());
-		scene_meme->refreshBackrop(pix_viz);
+		this->fillSingleObject();
 	}
 }
 
@@ -1192,9 +1482,7 @@ void MemeViz::on_pushButton_pieAr_clicked()
 	pieType = Area;
 	if (loaded_img)
 	{
-		this->computePieAngles();
-		QPixmap pix_viz = QPixmap::fromImage(mat_to_qimage_ref(this->fillPie(), QImage::Format_RGB888).rgbSwapped());
-		scene_meme->refreshBackrop(pix_viz);
+		this->fillSingleObject();
 	}
 }
 
@@ -1208,9 +1496,7 @@ void MemeViz::on_pushButton_pieArc_clicked()
 	pieType = Arc;
 	if (loaded_img)
 	{
-		this->computePieAngles();
-		QPixmap pix_viz = QPixmap::fromImage(mat_to_qimage_ref(this->fillPie(), QImage::Format_RGB888).rgbSwapped());
-		scene_meme->refreshBackrop(pix_viz);
+		this->fillSingleObject();
 	}
 }
 
@@ -1218,9 +1504,7 @@ void MemeViz::on_horizontalSlider_pieAng_sliderReleased()
 {
 	write_text_to_log_file("PieChartAngleChange\n");
 	pieRot = ui.horizontalSlider_pieAng->value();
-	this->computePieAngles();
-	QPixmap pix_viz = QPixmap::fromImage(mat_to_qimage_ref(this->fillPie(), QImage::Format_RGB888).rgbSwapped());
-	scene_meme->refreshBackrop(pix_viz);
+	this->fillSingleObject();
 }
 
 void MemeViz::on_spinBox_pieLabelRad_valueChanged()
@@ -1235,9 +1519,7 @@ void MemeViz::on_spinBox_pieOriginOffX_valueChanged()
 	if (loaded_img)
 	{
 		write_text_to_log_file("PieChartCenterXChange\n");
-		this->computePieAngles();
-		QPixmap pix_viz = QPixmap::fromImage(mat_to_qimage_ref(this->fillPie(), QImage::Format_RGB888).rgbSwapped());
-		scene_meme->refreshBackrop(pix_viz);
+		this->fillSingleObject();
 	}
 }
 
@@ -1246,9 +1528,7 @@ void MemeViz::on_spinBox_pieOriginOffY_valueChanged()
 	if (loaded_img)
 	{
 		write_text_to_log_file("PieChartCenterYChange\n");
-		this->computePieAngles();
-		QPixmap pix_viz = QPixmap::fromImage(mat_to_qimage_ref(this->fillPie(), QImage::Format_RGB888).rgbSwapped());
-		scene_meme->refreshBackrop(pix_viz);
+		this->fillSingleObject();
 	}
 }
 
@@ -1673,9 +1953,19 @@ double MemeViz::computePieAngles()
 		errArc = errArc + abs((d - arcLength[j]/totalArc)/d);
 	}
 	
-	ui.label_pie_area_err->setText(QString("Area: %1").arg(roundf((errArea/t_val.size())*100)/100));
-	ui.label_pie_angle_err->setText(QString("Angle: %1").arg(roundf((errAng / t_val.size()) * 100) / 100));
-	ui.label_pie_arc_err->setText(QString("Arc Length: %1").arg(roundf((errArc / t_val.size()) * 100) / 100));
+	ui.label_errVal1->setText(QString::number(roundf((errArea/t_val.size())*100), 'g', 2).append("%"));
+	ui.label_errVal2->setText(QString::number(roundf((errAng / t_val.size()) * 100), 'g', 2).append("%"));
+	ui.label_errVal3->setText(QString::number(roundf((errArc / t_val.size()) * 100), 'g', 2).append("%"));
+	
+	int pinX = (int) 120*roundf((errArea / t_val.size()) * 100) / 100;
+	ui.label_errorPin1->setGeometry(pinX,10,4,22);
+	pinX = (int)120 * roundf((errAng / t_val.size()) * 100) / 100;
+	ui.label_errorPin2->setGeometry(pinX, 47, 4, 22);
+	pinX = (int)120 * roundf((errArc / t_val.size()) * 100) / 100;
+	ui.label_errorPin3->setGeometry(pinX, 84, 4, 22);
+	
+	
+
 
 	//Release memory used by temp images
 	src2.release();
@@ -1694,7 +1984,9 @@ double MemeViz::computePieAngles()
 
 	//double avgError = (errArea + errAng) / (t_val.size());	
 	double avgError = (errArea + errAng + errArc) / (t_val.size());
-	ui.label_pie_avg_err->setText(QString("Avg: %1").arg(avgError / 3));
+	ui.label_errVal4->setText(QString::number(100*avgError / 3, 'g', 2).append("%"));
+	pinX = (int)120 * avgError / 3;
+	ui.label_errorPin4->setGeometry(pinX, 121, 4, 22);
 	return avgError/3;
 }
 
@@ -1880,7 +2172,7 @@ void MemeViz::optimizePie() {
 		T = T*alpha;
 	}			
 	QMessageBox::information(0, "info", QString("Optimize done"));
-	ui.label_pie_avg_err->setText(QString("Avg: %1").arg(old_cost));
+	//ui.label_pie_avg_err->setText(QString("Avg: %1").arg(old_cost));
 	QPixmap pix_viz = QPixmap::fromImage(mat_to_qimage_ref(this->fillPie(), QImage::Format_RGB888).rgbSwapped());	
 	scene_meme->refreshBackrop(pix_viz);
 }
@@ -1944,8 +2236,7 @@ void MemeViz::on_pushButton_pieColor_1_clicked()
 	style = style.arg(color.red()).arg(color.green()).arg(color.blue());
 	ui.pushButton_pieColor_1->setStyleSheet(style);
 	pieColors[0] = color;
-	QPixmap pix_viz = QPixmap::fromImage(mat_to_qimage_ref(this->fillPie(), QImage::Format_RGB888).rgbSwapped());
-	scene_meme->refreshBackrop(pix_viz);
+	this->fillSingleObject();
 }
 
 void MemeViz::on_pushButton_pieColor_2_clicked()
@@ -1956,8 +2247,7 @@ void MemeViz::on_pushButton_pieColor_2_clicked()
 	style = style.arg(color.red()).arg(color.green()).arg(color.blue());
 	ui.pushButton_pieColor_2->setStyleSheet(style);
 	pieColors[1] = color;
-	QPixmap pix_viz = QPixmap::fromImage(mat_to_qimage_ref(this->fillPie(), QImage::Format_RGB888).rgbSwapped());
-	scene_meme->refreshBackrop(pix_viz);
+	this->fillSingleObject();
 }
 
 void MemeViz::on_pushButton_pieColor_3_clicked()
@@ -1968,8 +2258,7 @@ void MemeViz::on_pushButton_pieColor_3_clicked()
 	style = style.arg(color.red()).arg(color.green()).arg(color.blue());
 	ui.pushButton_pieColor_3->setStyleSheet(style);
 	pieColors[2] = color;
-	QPixmap pix_viz = QPixmap::fromImage(mat_to_qimage_ref(this->fillPie(), QImage::Format_RGB888).rgbSwapped());
-	scene_meme->refreshBackrop(pix_viz);
+	this->fillSingleObject();
 }
 
 void MemeViz::on_pushButton_pieColor_4_clicked()
@@ -1980,8 +2269,7 @@ void MemeViz::on_pushButton_pieColor_4_clicked()
 	style = style.arg(color.red()).arg(color.green()).arg(color.blue());
 	ui.pushButton_pieColor_4->setStyleSheet(style);
 	pieColors[3] = color;
-	QPixmap pix_viz = QPixmap::fromImage(mat_to_qimage_ref(this->fillPie(), QImage::Format_RGB888).rgbSwapped());
-	scene_meme->refreshBackrop(pix_viz);
+	this->fillSingleObject();
 }
 
 void MemeViz::on_pushButton_pieColor_5_clicked()
@@ -1992,8 +2280,7 @@ void MemeViz::on_pushButton_pieColor_5_clicked()
 	style = style.arg(color.red()).arg(color.green()).arg(color.blue());
 	ui.pushButton_pieColor_5->setStyleSheet(style);
 	pieColors[4] = color;
-	QPixmap pix_viz = QPixmap::fromImage(mat_to_qimage_ref(this->fillPie(), QImage::Format_RGB888).rgbSwapped());
-	scene_meme->refreshBackrop(pix_viz);
+	this->fillSingleObject();
 }
 
 void MemeViz::on_pushButton_pieColor_6_clicked()
@@ -2004,8 +2291,7 @@ void MemeViz::on_pushButton_pieColor_6_clicked()
 	style = style.arg(color.red()).arg(color.green()).arg(color.blue());
 	ui.pushButton_pieColor_6->setStyleSheet(style);
 	pieColors[5] = color;
-	QPixmap pix_viz = QPixmap::fromImage(mat_to_qimage_ref(this->fillPie(), QImage::Format_RGB888).rgbSwapped());
-	scene_meme->refreshBackrop(pix_viz);
+	this->fillSingleObject();
 }
 
 void MemeViz::on_pushButton_pieColor_7_clicked()
@@ -2116,70 +2402,624 @@ void MemeViz::on_pushButton_pieColor_15_clicked()
 	scene_meme->refreshBackrop(pix_viz);
 }
 
-void MemeViz::on_pushButton_pieColor_16_clicked()
+
+//Horizontal Chart
+double MemeViz::computeHorizontal()
 {
-	write_text_to_log_file("PieChartColorIndvChange\n");
-	QColor color = QColorDialog::getColor(pieColors[15], this, "Text Color");
-	QString style = "border-style: none;background-color: rgb(%1, %2, %3);";
-	style = style.arg(color.red()).arg(color.green()).arg(color.blue());
-	ui.pushButton_pieColor_16->setStyleSheet(style);
-	pieColors[15] = color;
-	QPixmap pix_viz = QPixmap::fromImage(mat_to_qimage_ref(this->fillPie(), QImage::Format_RGB888).rgbSwapped());
-	scene_meme->refreshBackrop(pix_viz);
+	cv::Mat src2;
+	int thresh = 100;
+	int max_thresh = 255;
+	// Convert image to gray and blur it
+	cvtColor(mask, src2, CV_GRAY2RGB);
+
+	cv::Mat threshold_output;
+	std::vector<std::vector<cv::Point>> contours;
+	std::vector<cv::Vec4i> hierarchy;
+
+	// Detect edges using Threshold
+	threshold(mask, threshold_output, thresh, 255, cv::THRESH_BINARY);
+	// Find contours
+	findContours(threshold_output, contours, hierarchy, CV_RETR_LIST, CV_CHAIN_APPROX_NONE, cv::Point(0, 0));
+
+	// Approximate contours to polygons + get bounding rects and circles
+	std::vector<std::vector<cv::Point> > contours_poly(contours.size());
+	std::vector<cv::Point2f>center(contours.size());
+	std::vector<float>radius(contours.size());
+
+	int bigIdx = 0; //Index of biggest contour
+	double ar = 0.0; //Area of biggest contour
+	for (int i = 0; i < contours.size(); i++)
+	{
+		approxPolyDP(cv::Mat(contours[i]), contours_poly[i], 3, true);
+		minEnclosingCircle((cv::Mat)contours_poly[i], center[i], radius[i]);
+		if (ar < contourArea(contours[i]))
+		{
+			ar = contourArea(contours[i]);
+			bigIdx = i;
+		}
+	}
+
+	// Draw biggest contour 
+	std::vector<cv::Point> bigContour = contours[bigIdx];
+	cv::Mat drawing = cv::Mat::zeros(threshold_output.size(), CV_8UC3);
+	src2 = cv::Mat::zeros(src2.size(), CV_8UC3);
+	drawContours(src2, contours, bigIdx, cv::Scalar(255, 255, 255), -2, 8, hierarchy, 0, cv::Point());
+
+	std::vector<cv::Point> bighull;
+	cv::convexHull(bigContour, bighull);
+
+	//compute total of data values
+	double total = 0;
+
+	for (int j = 0; j < t_val.size(); j++)
+	{
+		total = total + t_val[j];
+	}
+
+	if (!optimize) {
+		angles.clear();
+	}
+	areas.clear();
+	areas.push_back(0);
+	arcLength.clear();
+	arcLength.push_back(0);
+	pieCenter = center[bigIdx];
+	pieCenter.x = pieCenter.x + ui.spinBox_pieOriginOffX->value();
+	pieCenter.y = pieCenter.y + ui.spinBox_pieOriginOffY->value();
+
+	//Compute Angles 
+	if (pieType == Area & !optimize)
+	{
+		//Based on area
+		double area = contourArea(contours[bigIdx]); //Total region area
+		cv::Rect encRect = boundingRect(contours[bigIdx]);
+		double offset = encRect.x; // Start angle of first segment (offset from 0)
+		cv::Mat drawing_tmp = cv::Mat::zeros(threshold_output.size(), CV_8UC3); // Temporary image to hold each segment of the area to compute the segment area
+		for (int j = 0; j < t_val.size(); j++)
+		{
+			drawing_tmp = cv::Mat::zeros(threshold_output.size(), CV_8UC3);  // Temporary image to hold each segment of the area to compute the segment area
+			drawing = cv::Mat::zeros(threshold_output.size(), CV_8UC3);
+			double start = offset;
+			double stop = start + 0.5;
+			double area_tmp = 0.0;
+			angles.push_back(offset);
+			while (area_tmp < (area*t_val[j] / total))
+			{
+				drawing_tmp = cv::Mat::zeros(threshold_output.size(), CV_8UC3);
+				drawing = cv::Mat::zeros(threshold_output.size(), CV_8UC3);
+				//ellipse(drawing, pieCenter, cv::Size((int)radius[bigIdx] * 2, (int)radius[bigIdx] * 2), 0, start, stop, cv::Scalar(255, 255, 255), -2, 8, 0);				
+				cv::Point pt1(start, encRect.y);
+				cv::Point pt2(stop, encRect.y + encRect.height);
+				rectangle(drawing, pt1, pt2, cv::Scalar(255, 255, 255), -2, 8, 0);
+				drawing.copyTo(drawing_tmp, src2);
+				cvtColor(drawing_tmp, drawing_tmp, CV_BGR2GRAY);
+				threshold(drawing_tmp, threshold_output, thresh, 255, cv::THRESH_BINARY);
+				findContours(threshold_output, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
+				stop = stop + 0.5;
+				area_tmp = contourArea(contours[0]);
+			}
+			offset = stop - 0.5;
+			areas.push_back(area_tmp);
+		}
+		angles.push_back(offset); // Add 360 to the hardcoded offset
+		drawing_tmp.release();
+	}
+	else if (pieType == Arc & !optimize)
+	{
+		//Based on Axis Length
+		cv::Rect encRect = boundingRect(contours[bigIdx]);
+		double offset = encRect.x; // Start angle of first segment (offset from 0)
+		angles.push_back(offset);
+		cv::Mat drawing_tmp = cv::Mat::zeros(threshold_output.size(), CV_8UC3); // Temporary image to hold each segment of the area to compute the segment area
+		for (int j = 0; j < t_val.size(); j++)
+		{
+			drawing_tmp = cv::Mat::zeros(threshold_output.size(), CV_8UC3);  // Temporary image to hold each segment of the area to compute the segment area
+			drawing = cv::Mat::zeros(threshold_output.size(), CV_8UC3);
+			double start = offset;
+			double stop = start + 0.5;
+			double area_tmp = 0.0;			
+			double segWidth = encRect.width*t_val[j] / total;
+			angles.push_back(start + segWidth);
+			drawing_tmp = cv::Mat::zeros(threshold_output.size(), CV_8UC3);
+			drawing = cv::Mat::zeros(threshold_output.size(), CV_8UC3);
+			cv::Point pt1(start, encRect.y);
+			cv::Point pt2(start+ segWidth, encRect.y + encRect.height);
+			rectangle(drawing, pt1, pt2, cv::Scalar(255, 255, 255), -2, 8, 0);
+			drawing.copyTo(drawing_tmp, src2);
+			cvtColor(drawing_tmp, drawing_tmp, CV_BGR2GRAY);
+			threshold(drawing_tmp, threshold_output, thresh, 255, cv::THRESH_BINARY);
+			findContours(threshold_output, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));			
+			area_tmp = contourArea(contours[0]);			
+			areas.push_back(area_tmp);
+			offset = start + segWidth;
+		}
+		//angles.push_back(360 + pieRot); // Add 360 to the hardcoded offset
+		drawing_tmp.release();
+	}
+
+	//********************************************Compute Errors*************************************************
+
+	
+	double totalArea = 0;
+	double totalArc = 0;
+	for (int j = 1; j < angles.size(); j++) {
+		totalArea = totalArea + areas[j];
+		double start = angles[j-1];
+		double stop = angles[j];
+		totalArc = totalArc + (stop - start);
+	}
+	//QMessageBox::information(0, "info", QString("Total Angle: %1, Area: %2, Arc: %3").arg(totalAng).arg(totalArea).arg(totalArc));
+
+	
+	double errArea = 0;
+	double errArc = 0;
+	for (int j = 1; j < angles.size(); j++) {
+		double d = t_val[j - 1] / total;
+		errArea = errArea + abs((d - areas[j] / totalArea) / d);
+		double start = angles[j-1];
+		double stop = angles[j];
+		errArc = errArc + abs((d - (stop - start) / totalArc) / d);
+	}
+
+	ui.label_errVal1->setText(QString::number(roundf((errArea / t_val.size()) * 100), 'g', 2).append("%"));	
+	ui.label_errVal2->setText(QString::number(roundf((errArc / t_val.size()) * 100), 'g', 2).append("%"));
+
+	int pinX = (int)120 * roundf((errArea / t_val.size()) * 100) / 100;
+	ui.label_errorPin1->setGeometry(pinX, 10, 4, 22);
+	pinX = (int)120 * roundf((errArc / t_val.size()) * 100) / 100;
+	ui.label_errorPin2->setGeometry(pinX, 47, 4, 22);
+
+
+
+
+	//Release memory used by temp images
+	src2.release();
+	threshold_output.release();
+	drawing.release();
+
+
+	//Release memory used by vectors
+	std::vector<std::vector<cv::Point>>().swap(contours);
+	std::vector<cv::Vec4i>().swap(hierarchy);
+	std::vector<std::vector<cv::Point>>().swap(contours_poly);
+	std::vector<cv::Point2f>().swap(center);
+	std::vector<float>().swap(radius);
+	std::vector<cv::Point>().swap(bigContour);
+	std::vector<cv::Point>().swap(bighull);
+
+	//double avgError = (errArea + errAng) / (t_val.size());	
+	double avgError = (errArea + errArc) / (t_val.size());
+	ui.label_errVal4->setText(QString::number(100 * avgError / 2, 'g', 2).append("%"));
+	pinX = (int)120 * avgError / 2;
+	ui.label_errorPin4->setGeometry(pinX, 121, 4, 22);
+	return avgError / 2;
 }
 
-void MemeViz::on_pushButton_pieColor_17_clicked()
+cv::Mat MemeViz::fillHorizontal()
 {
-	write_text_to_log_file("PieChartColorIndvChange\n");
-	QColor color = QColorDialog::getColor(pieColors[16], this, "Text Color");
-	QString style = "border-style: none;background-color: rgb(%1, %2, %3);";
-	style = style.arg(color.red()).arg(color.green()).arg(color.blue());
-	ui.pushButton_pieColor_17->setStyleSheet(style);
-	pieColors[16] = color;
-	QPixmap pix_viz = QPixmap::fromImage(mat_to_qimage_ref(this->fillPie(), QImage::Format_RGB888).rgbSwapped());
-	scene_meme->refreshBackrop(pix_viz);
+	cv::Mat image(filtimg.size(), CV_8UC3);
+	filtimg.copyTo(image);
+
+	//draw a piechart based on the angles computed
+	cv::Mat drawing(filtimg.size(), CV_8UC3, cv::Scalar(0, 0, 0));
+	cv::Point pt;
+	pt.x = pieCenter.x;
+	pt.y = pieCenter.y;
+	//cv::RNG rng(12345);
+	for (int j = 0; j < t_val.size(); j++)
+	{
+		cv::Scalar color = cv::Scalar(pieColors[j].red(), pieColors[j].green(), pieColors[j].blue());
+		double start = angles[j];
+		double stop = angles[j + 1];
+	   // QMessageBox::information(0, "info", QString(" Angle: %1").arg(angles[j]));
+
+		
+		cv::Point pt1(start, 0);
+		cv::Point pt2(stop, filtimg.rows);
+		rectangle(drawing, pt1, pt2, color, -2, 8, 0);
+		//cv::namedWindow("Detected Lines", 1);
+		//cv::imshow("Detected Lines", drawing);
+		//cv::waitKey();
+	}
+
+
+
+	//Use the mask to cut out the piechart
+	cv::Mat foreground(filtimg.size(), CV_8UC3, cv::Scalar(0, 0, 0));
+	drawing.copyTo(foreground, mask);
+
+	//Merge the chart with the image in LAB color space
+	cvtColor(image, image, CV_BGR2Lab);
+	cvtColor(foreground, foreground, CV_RGB2Lab);
+
+	//Merge the chart with the image in HSV color space
+	//cvtColor(image, image, CV_BGR2HSV);
+	//cvtColor(foreground, foreground, CV_BGR2HSV);
+
+	for (int x = 0; x < mask.rows; x++)
+	{
+		for (int y = 0; y < mask.cols; y++)
+		{
+			cv::Vec3b intensity = foreground.at<cv::Vec3b>(x, y);
+			if (intensity.val[0] != 0)
+			{
+				//For LAB
+				image.at<cv::Vec3b>(x, y).val[1] = intensity.val[1];
+				image.at<cv::Vec3b>(x, y).val[2] = intensity.val[2];
+				//For HSV
+				//image.at<cv::Vec3b>(x, y).val[0] = intensity.val[0];								
+			}
+		}
+	}
+
+	cvtColor(image, image, CV_Lab2BGR);
+	//cvtColor(image, image, CV_HSV2BGR);
+
+	// Labelling the chart
+	scene_meme->removePieLabels();
+
+	QGraphicsTextItem *tmp;
+	double txtAng = 0;
+	for (int i = 0; i < t_val.size(); i++)
+	{
+		tmp = new QGraphicsTextItem(QString::fromStdString(t_label[i]) + ": " + QString("%1").arg(t_val[i]) + "%");
+		tmp->setZValue(600);
+		txtAng = (angles[i] + pieRot + angles[i + 1] + pieRot) / 2;
+		txtAng = (txtAng * PI) / 180.0;
+		int txtRad = ui.spinBox_pieLabelRad->value();;
+		double x, y;
+		if (txtAng >= 2 * PI)
+		{
+			txtAng = txtAng - floor(txtAng / PI)*PI;
+		}
+		if (txtAng > PI / 2 && txtAng < 3 * PI / 2)
+		{
+			x = pieCenter.x + txtRad * cos(txtAng) - tmp->boundingRect().width();
+		}
+		else
+		{
+			x = pieCenter.x + txtRad * cos(txtAng);
+		}
+		if (txtAng > 0 && txtAng < PI)
+		{
+			y = pieCenter.y + txtRad * sin(txtAng);
+		}
+		else
+		{
+			y = pieCenter.y + txtRad * sin(txtAng) - tmp->boundingRect().height();
+		}
+		tmp->setPos(QPointF(x, y));
+		tmp->setFlag(QGraphicsItem::ItemIsSelectable, true);
+		tmp->setFlag(QGraphicsItem::ItemIsMovable, true);
+		scene_meme->addItem(tmp);
+	}
+	return image;
 }
 
-void MemeViz::on_pushButton_pieColor_18_clicked()
+//Horizontal Chart
+double MemeViz::computeVertical()
 {
-	write_text_to_log_file("PieChartColorIndvChange\n");
-	QColor color = QColorDialog::getColor(pieColors[17], this, "Text Color");
-	QString style = "border-style: none;background-color: rgb(%1, %2, %3);";
-	style = style.arg(color.red()).arg(color.green()).arg(color.blue());
-	ui.pushButton_pieColor_18->setStyleSheet(style);
-	pieColors[17] = color;
-	QPixmap pix_viz = QPixmap::fromImage(mat_to_qimage_ref(this->fillPie(), QImage::Format_RGB888).rgbSwapped());
-	scene_meme->refreshBackrop(pix_viz);
+	cv::Mat src2;
+	int thresh = 100;
+	int max_thresh = 255;
+	// Convert image to gray and blur it
+	cvtColor(mask, src2, CV_GRAY2RGB);
+
+	cv::Mat threshold_output;
+	std::vector<std::vector<cv::Point>> contours;
+	std::vector<cv::Vec4i> hierarchy;
+
+	// Detect edges using Threshold
+	threshold(mask, threshold_output, thresh, 255, cv::THRESH_BINARY);
+	// Find contours
+	findContours(threshold_output, contours, hierarchy, CV_RETR_LIST, CV_CHAIN_APPROX_NONE, cv::Point(0, 0));
+
+	// Approximate contours to polygons + get bounding rects and circles
+	std::vector<std::vector<cv::Point> > contours_poly(contours.size());
+	std::vector<cv::Point2f>center(contours.size());
+	std::vector<float>radius(contours.size());
+
+	int bigIdx = 0; //Index of biggest contour
+	double ar = 0.0; //Area of biggest contour
+	for (int i = 0; i < contours.size(); i++)
+	{
+		approxPolyDP(cv::Mat(contours[i]), contours_poly[i], 3, true);
+		minEnclosingCircle((cv::Mat)contours_poly[i], center[i], radius[i]);
+		if (ar < contourArea(contours[i]))
+		{
+			ar = contourArea(contours[i]);
+			bigIdx = i;
+		}
+	}
+
+	// Draw biggest contour 
+	std::vector<cv::Point> bigContour = contours[bigIdx];
+	cv::Mat drawing = cv::Mat::zeros(threshold_output.size(), CV_8UC3);
+	src2 = cv::Mat::zeros(src2.size(), CV_8UC3);
+	drawContours(src2, contours, bigIdx, cv::Scalar(255, 255, 255), -2, 8, hierarchy, 0, cv::Point());
+
+	std::vector<cv::Point> bighull;
+	cv::convexHull(bigContour, bighull);
+
+	//compute total of data values
+	double total = 0;
+
+	for (int j = 0; j < t_val.size(); j++)
+	{
+		total = total + t_val[j];
+	}
+
+	if (!optimize) {
+		angles.clear();
+	}
+	areas.clear();
+	areas.push_back(0);
+	arcLength.clear();
+	arcLength.push_back(0);
+	pieCenter = center[bigIdx];
+	pieCenter.x = pieCenter.x + ui.spinBox_pieOriginOffX->value();
+	pieCenter.y = pieCenter.y + ui.spinBox_pieOriginOffY->value();
+
+	//Compute Angles 
+	if (pieType == Area & !optimize)
+	{
+		//Based on area
+		double area = contourArea(contours[bigIdx]); //Total region area
+		cv::Rect encRect = boundingRect(contours[bigIdx]);
+		double offset = encRect.y; // Start angle of first segment (offset from 0)
+		cv::Mat drawing_tmp = cv::Mat::zeros(threshold_output.size(), CV_8UC3); // Temporary image to hold each segment of the area to compute the segment area
+		for (int j = 0; j < t_val.size(); j++)
+		{
+			drawing_tmp = cv::Mat::zeros(threshold_output.size(), CV_8UC3);  // Temporary image to hold each segment of the area to compute the segment area
+			drawing = cv::Mat::zeros(threshold_output.size(), CV_8UC3);
+			double start = offset;
+			double stop = start + 0.5;
+			double area_tmp = 0.0;
+			angles.push_back(offset);
+			while (area_tmp < (area*t_val[j] / total))
+			{
+				drawing_tmp = cv::Mat::zeros(threshold_output.size(), CV_8UC3);
+				drawing = cv::Mat::zeros(threshold_output.size(), CV_8UC3);
+				//ellipse(drawing, pieCenter, cv::Size((int)radius[bigIdx] * 2, (int)radius[bigIdx] * 2), 0, start, stop, cv::Scalar(255, 255, 255), -2, 8, 0);				
+				cv::Point pt1(encRect.y,start);
+				cv::Point pt2(encRect.x + encRect.width, stop);
+				rectangle(drawing, pt1, pt2, cv::Scalar(255, 255, 255), -2, 8, 0);
+				drawing.copyTo(drawing_tmp, src2);
+				cvtColor(drawing_tmp, drawing_tmp, CV_BGR2GRAY);
+				threshold(drawing_tmp, threshold_output, thresh, 255, cv::THRESH_BINARY);
+				findContours(threshold_output, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
+				stop = stop + 0.5;
+				area_tmp = contourArea(contours[0]);
+			}
+			offset = stop - 0.5;
+			areas.push_back(area_tmp);
+		}
+		angles.push_back(360 + offset); // Add 360 to the hardcoded offset
+		drawing_tmp.release();
+	}
+	else if (pieType == Arc & !optimize)
+	{
+		//Based on Axis Length
+		cv::Rect encRect = boundingRect(contours[bigIdx]);
+		double offset = encRect.y; // Start angle of first segment (offset from 0)
+		angles.push_back(offset);
+		cv::Mat drawing_tmp = cv::Mat::zeros(threshold_output.size(), CV_8UC3); // Temporary image to hold each segment of the area to compute the segment area
+		for (int j = 0; j < t_val.size(); j++)
+		{
+			drawing_tmp = cv::Mat::zeros(threshold_output.size(), CV_8UC3);  // Temporary image to hold each segment of the area to compute the segment area
+			drawing = cv::Mat::zeros(threshold_output.size(), CV_8UC3);
+			double start = offset;			
+			double area_tmp = 0.0;
+			double segHeight = encRect.height*t_val[j] / total;
+			angles.push_back(start + segHeight);
+			drawing_tmp = cv::Mat::zeros(threshold_output.size(), CV_8UC3);
+			drawing = cv::Mat::zeros(threshold_output.size(), CV_8UC3);
+			cv::Point pt1(encRect.x, start);
+			cv::Point pt2(encRect.x + encRect.width, start + segHeight);
+			rectangle(drawing, pt1, pt2, cv::Scalar(255, 255, 255), -2, 8, 0);
+			drawing.copyTo(drawing_tmp, src2);
+			cvtColor(drawing_tmp, drawing_tmp, CV_BGR2GRAY);
+			threshold(drawing_tmp, threshold_output, thresh, 255, cv::THRESH_BINARY);
+			findContours(threshold_output, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
+			area_tmp = contourArea(contours[0]);
+			areas.push_back(area_tmp);
+			offset = start + segHeight;
+		}
+		//angles.push_back(360 + pieRot); // Add 360 to the hardcoded offset
+		drawing_tmp.release();
+	}
+	
+	//********************************************Compute Errors*************************************************
+
+	
+	double totalArea = 0;
+	double totalArc = 0;
+	for (int j = 1; j < angles.size(); j++) {	
+		totalArea = totalArea + areas[j];
+		double start = angles[j-1];
+		double stop = angles[j];
+		totalArc = totalArc + (stop - start);
+	}
+	//QMessageBox::information(0, "info", QString("Total Angle: %1, Area: %2, Arc: %3").arg(totalAng).arg(totalArea).arg(totalArc));
+
+	
+	double errArea = 0;
+	double errArc = 0;
+	for (int j = 1; j < angles.size(); j++) {
+		double d = t_val[j - 1] / total;	
+		errArea = errArea + abs((d - areas[j] / totalArea) / d);
+		double start = angles[j-1];
+		double stop = angles[j];
+		errArc = errArc + abs((d - (stop - start) / totalArc) / d);
+	}
+
+
+	ui.label_errVal1->setText(QString::number(roundf((errArea / t_val.size()) * 100), 'g', 2).append("%"));
+	ui.label_errVal2->setText(QString::number(roundf((errArc / t_val.size()) * 100), 'g', 2).append("%"));
+
+	int pinX = (int)120 * roundf((errArea / t_val.size()) * 100) / 100;
+	ui.label_errorPin1->setGeometry(pinX, 10, 4, 22);
+	pinX = (int)120 * roundf((errArc / t_val.size()) * 100) / 100;
+	ui.label_errorPin2->setGeometry(pinX, 47, 4, 22);
+	   
+
+	//Release memory used by temp images
+	src2.release();
+	threshold_output.release();
+	drawing.release();
+
+
+	//Release memory used by vectors
+	std::vector<std::vector<cv::Point>>().swap(contours);
+	std::vector<cv::Vec4i>().swap(hierarchy);
+	std::vector<std::vector<cv::Point>>().swap(contours_poly);
+	std::vector<cv::Point2f>().swap(center);
+	std::vector<float>().swap(radius);
+	std::vector<cv::Point>().swap(bigContour);
+	std::vector<cv::Point>().swap(bighull);
+
+	//double avgError = (errArea + errAng) / (t_val.size());	
+	double avgError = (errArea + errArc) / (t_val.size());
+	ui.label_errVal4->setText(QString::number(100 * avgError / 2, 'g', 2).append("%"));
+	pinX = (int)120 * avgError / 2;
+	ui.label_errorPin4->setGeometry(pinX, 121, 4, 22);
+	return avgError / 2;
 }
 
-void MemeViz::on_pushButton_pieColor_19_clicked()
+cv::Mat MemeViz::fillVertical()
 {
-	write_text_to_log_file("PieChartColorIndvChange\n");
-	QColor color = QColorDialog::getColor(pieColors[18], this, "Text Color");
-	QString style = "border-style: none;background-color: rgb(%1, %2, %3);";
-	style = style.arg(color.red()).arg(color.green()).arg(color.blue());
-	ui.pushButton_pieColor_19->setStyleSheet(style);
-	pieColors[18] = color;
-	QPixmap pix_viz = QPixmap::fromImage(mat_to_qimage_ref(this->fillPie(), QImage::Format_RGB888).rgbSwapped());
-	scene_meme->refreshBackrop(pix_viz);
-}
+	cv::Mat image(filtimg.size(), CV_8UC3);
+	filtimg.copyTo(image);
 
-void MemeViz::on_pushButton_pieColor_20_clicked()
-{
-	write_text_to_log_file("PieChartColorIndvChange\n");
-	QColor color = QColorDialog::getColor(pieColors[19], this, "Text Color");
-	QString style = "border-style: none;background-color: rgb(%1, %2, %3);";
-	style = style.arg(color.red()).arg(color.green()).arg(color.blue());
-	ui.pushButton_pieColor_20->setStyleSheet(style);
-	pieColors[19] = color;
-	QPixmap pix_viz = QPixmap::fromImage(mat_to_qimage_ref(this->fillPie(), QImage::Format_RGB888).rgbSwapped());
-	scene_meme->refreshBackrop(pix_viz);
+	//draw a piechart based on the angles computed
+	cv::Mat drawing(filtimg.size(), CV_8UC3, cv::Scalar(0, 0, 0));
+	cv::Point pt;
+	pt.x = pieCenter.x;
+	pt.y = pieCenter.y;
+	//cv::RNG rng(12345);
+	for (int j = 0; j < t_val.size(); j++)
+	{
+		cv::Scalar color = cv::Scalar(pieColors[j].red(), pieColors[j].green(), pieColors[j].blue());
+		double start = angles[j];
+		double stop = angles[j + 1];
+		// QMessageBox::information(0, "info", QString(" Angle: %1").arg(angles[j]));
+
+
+		cv::Point pt1(0, start);
+		cv::Point pt2(filtimg.cols, stop);
+		rectangle(drawing, pt1, pt2, color, -2, 8, 0);
+		//cv::namedWindow("Detected Lines", 1);
+		//cv::imshow("Detected Lines", drawing);
+		//cv::waitKey();
+	}
+
+
+
+	//Use the mask to cut out the piechart
+	cv::Mat foreground(filtimg.size(), CV_8UC3, cv::Scalar(0, 0, 0));
+	drawing.copyTo(foreground, mask);
+
+	//Merge the chart with the image in LAB color space
+	cvtColor(image, image, CV_BGR2Lab);
+	cvtColor(foreground, foreground, CV_RGB2Lab);
+
+	//Merge the chart with the image in HSV color space
+	//cvtColor(image, image, CV_BGR2HSV);
+	//cvtColor(foreground, foreground, CV_BGR2HSV);
+
+	for (int x = 0; x < mask.rows; x++)
+	{
+		for (int y = 0; y < mask.cols; y++)
+		{
+			cv::Vec3b intensity = foreground.at<cv::Vec3b>(x, y);
+			if (intensity.val[0] != 0)
+			{
+				//For LAB
+				image.at<cv::Vec3b>(x, y).val[1] = intensity.val[1];
+				image.at<cv::Vec3b>(x, y).val[2] = intensity.val[2];
+				//For HSV
+				//image.at<cv::Vec3b>(x, y).val[0] = intensity.val[0];								
+			}
+		}
+	}
+
+	cvtColor(image, image, CV_Lab2BGR);
+	//cvtColor(image, image, CV_HSV2BGR);
+
+	// Labelling the chart
+	scene_meme->removePieLabels();
+
+	QGraphicsTextItem *tmp;
+	double txtAng = 0;
+	for (int i = 0; i < t_val.size(); i++)
+	{
+		tmp = new QGraphicsTextItem(QString::fromStdString(t_label[i]) + ": " + QString("%1").arg(t_val[i]) + "%");
+		tmp->setZValue(600);
+		txtAng = (angles[i] + pieRot + angles[i + 1] + pieRot) / 2;
+		txtAng = (txtAng * PI) / 180.0;
+		int txtRad = ui.spinBox_pieLabelRad->value();;
+		double x, y;
+		if (txtAng >= 2 * PI)
+		{
+			txtAng = txtAng - floor(txtAng / PI)*PI;
+		}
+		if (txtAng > PI / 2 && txtAng < 3 * PI / 2)
+		{
+			x = pieCenter.x + txtRad * cos(txtAng) - tmp->boundingRect().width();
+		}
+		else
+		{
+			x = pieCenter.x + txtRad * cos(txtAng);
+		}
+		if (txtAng > 0 && txtAng < PI)
+		{
+			y = pieCenter.y + txtRad * sin(txtAng);
+		}
+		else
+		{
+			y = pieCenter.y + txtRad * sin(txtAng) - tmp->boundingRect().height();
+		}
+		tmp->setPos(QPointF(x, y));
+		tmp->setFlag(QGraphicsItem::ItemIsSelectable, true);
+		tmp->setFlag(QGraphicsItem::ItemIsMovable, true);
+		scene_meme->addItem(tmp);
+	}
+	return image;
 }
 
 //***************Average slope***************
 void  MemeViz::avgSlope()
 {
 	if (chartType == Line) {
+
+		//Hieght and Area errors
+		double x1 = chart->mapToPosition(QPointF(0, t_val[0]), lineSeries).x();
+		double x2 = chart->mapToPosition(QPointF(1, t_val[1]), lineSeries).x();
+		double width = x2 - x1;
+		double maxH = chart->mapToPosition(QPointF(1, ui.doubleSpinBox_yMin->value()), lineSeries).y();
+
+
+		double total = 0;
+		double totalArea = 0;
+		double totalHt = 0;		
+		std::vector<double> barHts;
+		for (int j = 0; j < t_val.size(); j++)
+		{
+			total = total + t_val[j];
+			double barHt = chart->mapToPosition(QPointF(j, t_val[j]), lineSeries).y();
+			barHts.push_back(maxH - barHt);			
+			totalHt = totalHt + barHts[j];
+		}
+
+		double errHt = 0;
+		
+		for (int j = 0; j < barHts.size(); j++) {
+			double d = t_val[j] / total;		
+			errHt = errHt + abs((d - barHts[j] / totalHt) / d);
+		}
+
+		ui.label_errVal2->setText(QString::number((floorf(errHt * 100) / 100), 'g', 2).append("%"));
+
 		//***************Average slope***************
 		int n = t_val.size();
 		double avg_slope = 0.0;
@@ -2221,26 +3061,63 @@ void  MemeViz::avgSlope()
 			median_slope = slopes[size / 2];
 		}
 
-		ui.label_trend_median_err->setText(QString("Median: %1").arg(median_slope));
-		ui.label_trend_avg_err->setText(QString("Avg Or: %1").arg(avg_orient));
+		//ui.label_trend_median_err->setText(QString("Median: %1").arg(median_slope));
+		//ui.label_trend_avg_err->setText(QString("Avg Or: %1").arg(avg_orient));
+		double OrientErr = abs((45 - avg_orient) / 45);
+		ui.label_errVal1->setText(QString::number(roundf(100 * OrientErr), 'g', 2).append("%"));
+		int pinX = (int)120 * OrientErr;
+		ui.label_errorPin1->setGeometry(pinX, 10, 4, 22);
+
+		double avgError = 0.0;
+		avgError += (floorf(errHt * 100) / 100) / 100;
+		pinX = (int)120 * avgError;
+		ui.label_errorPin2->setGeometry(pinX, 47, 4, 22);
+		avgError += OrientErr;
+		ui.label_errVal4->setText(QString::number(100 * avgError / 2, 'g', 2).append("%"));
+		pinX = (int)120 * avgError / 2;
+		ui.label_errorPin4->setGeometry(pinX, 121, 4, 22);
+
+
+
 	}
 }
 
 //Line Chart
-void MemeViz::on_pushButton_line_clicked()
+void MemeViz::on_pushButton_lineOverlay_clicked()
 {
 	write_text_to_log_file("LineChartSelect\n");
 	chartType = Line;
-	ui.label_pie->setVisible(false);
-	ui.label_line->setVisible(true);
-	ui.label_bar->setVisible(false);
-	ui.groupBox_pie->setVisible(false);
-	ui.groupBox_line->setVisible(true);
-	ui.groupBox_bar->setVisible(false);
-	ui.distortion_trend->setVisible(true);
-	ui.distortion_area->setVisible(false);
-	ui.distortion_bar_overlay->setVisible(false);
-	ui.distortion_bar_fill->setVisible(false);
+	
+	ui.label_lineOverlay->setVisible(true);
+	ui.label_barOverlay->setVisible(false);
+	
+	ui.groupBox_LineOverlay->setVisible(true);
+	ui.groupBox_BarOverlay->setVisible(false);
+
+	ui.label_err1->setVisible(true);
+	ui.label_err1->setText(QString("Orientation:"));
+	ui.label_errVal1->setText(QString("0%"));
+	ui.label_errorPin1->setGeometry(0, 10, 4, 22);
+
+	ui.label_err2->setVisible(true);
+	ui.label_err2->setText(QString("Height:"));
+	ui.label_errVal2->setText(QString("0%"));
+	ui.label_errorPin2->setGeometry(0, 47, 4, 22);
+
+
+	ui.label_err3->setVisible(false);
+	ui.label_err3->setText(QString("Arc Length:"));
+	ui.label_errVal3->setVisible(false);
+	ui.label_errVal3->setText(QString("0%"));
+	ui.label_errorPin3->setVisible(false);
+	ui.label_errorPin3->setGeometry(0, 84, 4, 22);
+	ui.label_errorBar3->setVisible(false);
+
+
+	ui.label_err4->setVisible(true);
+	ui.label_err4->setText(QString("Avg.:"));
+	ui.label_errVal4->setText(QString("0%"));
+	ui.label_errorPin4->setGeometry(0, 121, 4, 22);
 
 	scene_meme->removePieLabels();
 	if (loaded_img)
@@ -2484,20 +3361,111 @@ void MemeViz::on_pushButton_lineSpline_clicked()
 }
 
 //bar Chart
-void MemeViz::on_pushButton_bar_clicked()
+
+void MemeViz::on_pushButton_barFill_clicked()
 {
-	write_text_to_log_file("BarChartSelect\n");
+	if (t_val.size() < 7)
+	{
+		write_text_to_log_file("BarChartFillSelect\n");
+		chartType = Bar;
+		barOverlay = false;
+		ui.label_pieFill->setVisible(false);
+		ui.label_barFill->setVisible(true);
+
+		ui.groupBox_PieFill->setVisible(false);
+		ui.groupBox_BarFill->setVisible(true);
+
+		ui.label_err1->setVisible(true);
+		ui.label_err1->setText(QString("Area:"));
+		ui.label_errVal1->setText(QString("0%"));
+		ui.label_errorPin1->setGeometry(0, 10, 4, 22);
+
+		ui.label_err2->setVisible(true);
+		ui.label_err2->setText(QString("Length:"));		
+		ui.label_errVal2->setText(QString("0%"));
+		ui.label_errorPin2->setGeometry(0, 47, 4, 22);
+
+		ui.label_err3->setVisible(false);
+		ui.label_err3->setText(QString("Arc Length:"));
+		ui.label_errVal3->setVisible(false);
+		ui.label_errVal3->setText(QString("0%"));
+		ui.label_errorPin3->setVisible(false);
+		ui.label_errorPin3->setGeometry(0, 84, 4, 22);
+		ui.label_errorBar3->setVisible(false);
+
+		ui.label_err4->setVisible(true);
+		ui.label_err4->setText(QString("Avg.:"));
+		ui.label_errVal4->setText(QString("0%"));
+		ui.label_errorPin4->setGeometry(0, 121, 4, 22);
+
+
+
+
+		if (chartAdded)
+		{
+			chartAdded = false;
+			scene_meme->removeItem(chart);
+		}
+		if (dataLoaded)
+		{
+			barMaskIdx = 0;
+			ui.label_barCurrLabel->setText(QString::fromStdString(t_label[barMaskIdx]));
+			if (loaded_img)
+			{
+				barMasks.clear();
+				for (int i = 0; i < t_label.size(); i++)
+				{
+					barMasks.push_back(img.clone());
+					barMaskAreas.push_back(-1.0);
+					barMaskHeights.push_back(-1.0);
+					barMasksSet.push_back(false);
+					barMasks[i] = cv::Scalar(0, 0, 0);
+					cv::cvtColor(barMasks[i], barMasks[i], CV_RGB2GRAY);
+				}
+			}
+		}
+	}
+	else
+	{
+		write_text_to_log_file("BarChartFillSelectDenied\n");
+		QMessageBox::information(0, "Alert", QString("Too many items for a fill style bar chart."));
+	}
+}
+
+void MemeViz::on_pushButton_barOverlay_clicked()
+{
+	write_text_to_log_file("BarOverlayChartSelect\n");
 	chartType = Bar;
-	ui.label_pie->setVisible(false);
-	ui.label_line->setVisible(false);
-	ui.label_bar->setVisible(true);
-	ui.groupBox_pie->setVisible(false);
-	ui.groupBox_line->setVisible(false);
-	ui.groupBox_bar->setVisible(true);
-	ui.distortion_trend->setVisible(false);
-	ui.distortion_area->setVisible(false);
-	ui.distortion_bar_overlay->setVisible(barOverlay);
-	ui.distortion_bar_fill->setVisible(!barOverlay);
+	barOverlay = true;
+	ui.label_lineOverlay->setVisible(false);
+	ui.label_barOverlay->setVisible(true);
+
+	ui.groupBox_LineOverlay->setVisible(false);
+	ui.groupBox_BarOverlay->setVisible(true);
+	
+	ui.label_err1->setVisible(true);
+	ui.label_err1->setText(QString("Orientation:"));
+	ui.label_errVal1->setText(QString("0%"));
+	ui.label_errorPin1->setGeometry(0, 10, 4, 22);
+
+	ui.label_err2->setVisible(true);
+	ui.label_err2->setText(QString("Height:"));
+	ui.label_errVal2->setText(QString("0%"));
+	ui.label_errorPin2->setGeometry(0, 47, 4, 22);
+
+	ui.label_err3->setVisible(true);
+	ui.label_err3->setText(QString("Area:"));
+	ui.label_errVal3->setVisible(true);
+	ui.label_errVal3->setText(QString("0%"));
+	ui.label_errorPin3->setVisible(true);
+	ui.label_errorPin3->setGeometry(0, 84, 4, 22);
+	ui.label_errorBar3->setVisible(true);
+
+	ui.label_err4->setVisible(true);
+	ui.label_err4->setText(QString("Avg.:"));
+	ui.label_errVal4->setText(QString("0%"));
+	ui.label_errorPin4->setGeometry(0, 121, 4, 22);
+
 	scene_meme->removePieLabels();
 
 	if (dataLoaded)
@@ -2540,8 +3508,8 @@ void MemeViz::barError()
 			errHt = errHt + abs((d - barHts[j] / totalHt) / d);
 		}
 	
-		ui.label_bar_area_err->setText(QString("Area: %1").arg(floorf(errArea * 100) / 100));
-		ui.label_bar_height_err->setText(QString("Height: %1").arg(floorf(errHt * 100) / 100));
+		//ui.label_bar_area_err->setText(QString("Area: %1").arg(floorf(errArea * 100) / 100));
+		//ui.label_bar_height_err->setText(QString("Height: %1").arg(floorf(errHt * 100) / 100));
 
 		//45 degree banking
 		int n = t_val.size();
@@ -2584,8 +3552,30 @@ void MemeViz::barError()
 			median_slope = slopes[size / 2];
 		}
 
-		ui.label_bar_median_err->setText(QString("Median: %1").arg(median_slope));
-		ui.label_bar_avg_err->setText(QString("Avg Or: %1").arg(avg_orient));
+		//ui.label_bar_median_err->setText(QString("Median: %1").arg(median_slope));
+		//ui.label_bar_avg_err->setText(QString("Avg Or: %1").arg(avg_orient));
+		double OrientErr = abs((45 - avg_orient) / 45);
+		ui.label_errVal1->setText(QString::number(roundf(100 * OrientErr), 'g', 2).append("%"));
+		int pinX = (int) 120 * OrientErr;
+		ui.label_errorPin1->setGeometry(pinX, 10, 4, 22);
+
+		
+		ui.label_errVal2->setText(QString::number((floorf(errHt * 100) / 100), 'g', 2).append("%"));
+		ui.label_errVal3->setText(QString::number((floorf(errArea * 100) / 100), 'g', 2).append("%"));
+
+		
+		pinX = (int)120 * (floorf(errHt * 100) / 100) / 100;
+		ui.label_errorPin2->setGeometry(pinX, 47, 4, 22);
+		pinX = (int)120 * (floorf(errArea * 100) / 100) / 100;
+		ui.label_errorPin3->setGeometry(pinX, 84, 4, 22);
+
+		double avgError = 0.0;
+		avgError += (floorf(errHt * 100) / 100) / 100;
+		avgError += (floorf(errArea * 100) / 100) / 100;
+		avgError += OrientErr;			
+		ui.label_errVal4->setText(QString::number(100 * avgError/3, 'g', 2).append("%"));
+		pinX = (int)120 * avgError/3;
+		ui.label_errorPin4->setGeometry(pinX, 121, 4, 22);
 
 	}
 	if (chartType == Bar && !barOverlay) {
@@ -2614,8 +3604,23 @@ void MemeViz::barError()
 			}
 		}
 
-		ui.label_bar_fillArea_err->setText(QString("Area: %1").arg(floorf(errArea * 100) / 100));
-		ui.label_bar_fillHeight_err->setText(QString("Height: %1").arg(floorf(errHt * 100) / 100));
+		//ui.label_bar_fillArea_err->setText(QString("Area: %1").arg(floorf(errArea * 100) / 100));
+		//ui.label_bar_fillHeight_err->setText(QString("Height: %1").arg(floorf(errHt * 100) / 100));
+
+		ui.label_errVal1->setText(QString::number(errArea * 100, 'g', 2).append("%"));
+		ui.label_errVal2->setText(QString::number(errHt * 100, 'g', 2).append("%"));
+		
+		int pinX = (int)120 * errArea;
+		ui.label_errorPin1->setGeometry(pinX, 10, 4, 22);
+		pinX = (int)120 * errHt;
+		ui.label_errorPin2->setGeometry(pinX, 47, 4, 22);
+		
+
+		double avgError = (errArea + errHt) / 2;
+		ui.label_errVal4->setText(QString::number(100 * avgError, 'g', 2).append("%"));
+		pinX = (int)120 * avgError;
+		ui.label_errorPin4->setGeometry(pinX, 121, 4, 22);
+
 	}	
 }
 
@@ -2665,7 +3670,7 @@ void MemeViz::drawBarChart()
 	chart->axisX()->setLabelsAngle(45);
 	chart->axisY()->setGridLineVisible(false);	
 	chart->setMargins(QMargins(0, 0, 0, 0));
-	chart->legend()->setVisible(false);	
+	chart->legend()->setVisible(true);	
 	chart->setBackgroundVisible(false);
 	chart->setFont(textFont);
 	chart->setFlag(QGraphicsItem::ItemIsMovable, true);
@@ -2691,74 +3696,11 @@ void MemeViz::drawBarChart()
 //	chartpreview->axisX()->setLabelsAngle(45);
 	chartpreview->axisY()->setGridLineVisible(false);
 	chartpreview->setMargins(QMargins(0, 0, 0, 0));
-	chartpreview->legend()->setVisible(false);
+	chartpreview->legend()->setVisible(true);
 	chartpreview->setBackgroundVisible(false);
 	scene_preview->addItem(chartpreview);
 	chartPrwAdded = true;
 	barError();
-}
-
-void MemeViz::on_pushButton_barOverlay_clicked()
-{
-	write_text_to_log_file("BarChartOverlaySelect\n");
-	barOverlay = true;
-	ui.label_barOverlay->setStyleSheet("background: rgb(240, 240, 240);");
-	ui.label_barFill->setStyleSheet("background: rgb(65, 65, 65);");
-
-	ui.groupBox_BarFill->setVisible(false);
-	ui.groupBox_BarOverlay->setVisible(true);
-	ui.distortion_bar_overlay->setVisible(barOverlay);
-	ui.distortion_bar_fill->setVisible(!barOverlay);
-
-	if (dataLoaded)
-	{
-		drawBarChart();
-	}
-}
-
-void MemeViz::on_pushButton_barFill_clicked()
-{	
-	if (t_val.size() < 7)
-	{
-		write_text_to_log_file("BarChartFillSelect\n");
-		barOverlay = false;
-		ui.label_barFill->setStyleSheet("background: rgb(240, 240, 240);");
-		ui.label_barOverlay->setStyleSheet("background: rgb(65, 65, 65);");
-
-		ui.groupBox_BarFill->setVisible(true);
-		ui.groupBox_BarOverlay->setVisible(false);
-		ui.distortion_bar_overlay->setVisible(barOverlay);
-		ui.distortion_bar_fill->setVisible(!barOverlay);
-
-		if (chartAdded)
-		{
-			chartAdded = false;
-			scene_meme->removeItem(chart);
-		}
-		if (dataLoaded)
-		{
-			barMaskIdx = 0;
-			ui.label_barCurrLabel->setText(QString::fromStdString(t_label[barMaskIdx]));
-			if (loaded_img)
-			{
-				barMasks.clear();
-				for (int i = 0; i < t_label.size(); i++)
-				{
-					barMasks.push_back(img.clone());
-					barMaskAreas.push_back(-1.0);
-					barMaskHeights.push_back(-1.0);
-					barMasksSet.push_back(false);
-					barMasks[i] = cv::Scalar(0, 0, 0);
-					cv::cvtColor(barMasks[i], barMasks[i], CV_RGB2GRAY);
-				}
-			}
-		}
-	}
-	else
-	{
-		write_text_to_log_file("BarChartFillSelectDenied\n");
-		QMessageBox::information(0, "Alert", QString("Too many items for a fill style bar chart."));
-	}
 }
 
 void MemeViz::on_spinBox_barChartHeight_valueChanged()
@@ -3133,48 +4075,6 @@ void MemeViz::on_spinBox_labelOffBar_valueChanged()
 	scene_meme->refreshBackrop(filt_backdrop);
 }
 
-void MemeViz::on_pushButton_barPercentage_clicked()
-{
-	write_text_to_log_file("BarChartPercentageBar\n");
-	barPercentage = true;
-	ui.label_barPercentage->setStyleSheet("background: rgb(240, 240, 240);");
-	ui.label_barValue->setStyleSheet("background: rgb(65, 65, 65);");
-	scene_meme->setCurrentBackdrop(filtimg);
-	QPixmap pix_viz = QPixmap::fromImage(mat_to_qimage_ref(scene_meme->getCurrentBackdrop(), QImage::Format_RGB888).rgbSwapped());
-	scene_meme->refreshBackrop(pix_viz);
-	scene_meme->removePieLabels();
-	for (int i = 0; i < barMasksSet.size(); i++)
-	{
-		if (barMasksSet[i])
-		{
-			this->fillBarChart(i);
-		}
-	}
-	QPixmap filt_backdrop = QPixmap::fromImage(mat_to_qimage_ref(scene_meme->getCurrentBackdrop(), QImage::Format_RGB888).rgbSwapped());
-	scene_meme->refreshBackrop(filt_backdrop);
-}
-
-void MemeViz::on_pushButton_barValue_clicked()
-{
-	write_text_to_log_file("BarChartValueBar\n");
-	barPercentage = false;
-	ui.label_barPercentage->setStyleSheet("background: rgb(65, 65, 65);");
-	ui.label_barValue->setStyleSheet("background: rgb(240, 240, 240);");
-	scene_meme->setCurrentBackdrop(filtimg);
-	QPixmap pix_viz = QPixmap::fromImage(mat_to_qimage_ref(scene_meme->getCurrentBackdrop(), QImage::Format_RGB888).rgbSwapped());
-	scene_meme->refreshBackrop(pix_viz);
-	scene_meme->removePieLabels();
-	for (int i = 0; i < barMasksSet.size(); i++)
-	{
-		if (barMasksSet[i])
-		{
-			this->fillBarChart(i);
-		}
-	}
-	QPixmap filt_backdrop = QPixmap::fromImage(mat_to_qimage_ref(scene_meme->getCurrentBackdrop(), QImage::Format_RGB888).rgbSwapped());
-	scene_meme->refreshBackrop(filt_backdrop);
-}
-
 void MemeViz::on_doubleSpinBox_yMinBarFill_valueChanged()
 {
 	write_text_to_log_file("BarChartyMinBarFill\n");
@@ -3211,12 +4111,12 @@ void MemeViz::on_doubleSpinBox_yMaxBarFill_valueChanged()
 	scene_meme->refreshBackrop(filt_backdrop);
 }
 
-void MemeViz::on_pushButton_barHeight_clicked()
+void MemeViz::on_pushButton_barLength_clicked()
 {
 	write_text_to_log_file("BarChartHeightBar\n");
 	barType = BarHeight;
 	ui.label_barArea->setStyleSheet("background: rgb(65, 65, 65);");
-	ui.label_barHeight->setStyleSheet("background: rgb(240, 240, 240);");
+	ui.label_barLength->setStyleSheet("background: rgb(240, 240, 240);");
 	scene_meme->setCurrentBackdrop(filtimg);
 	QPixmap pix_viz = QPixmap::fromImage(mat_to_qimage_ref(scene_meme->getCurrentBackdrop(), QImage::Format_RGB888).rgbSwapped());
 	scene_meme->refreshBackrop(pix_viz);
@@ -3236,7 +4136,7 @@ void MemeViz::on_pushButton_barArea_clicked()
 {
 	write_text_to_log_file("BarChartAreaBar\n");
 	barType = BarArea;
-	ui.label_barHeight->setStyleSheet("background: rgb(65, 65, 65);");
+	ui.label_barLength->setStyleSheet("background: rgb(65, 65, 65);");
 	ui.label_barArea->setStyleSheet("background: rgb(240, 240, 240);");
 	scene_meme->setCurrentBackdrop(filtimg);
 	QPixmap pix_viz = QPixmap::fromImage(mat_to_qimage_ref(scene_meme->getCurrentBackdrop(), QImage::Format_RGB888).rgbSwapped());
@@ -3287,7 +4187,7 @@ void MemeViz::optimizeBar() {
 		T = T*alpha;
 	}
 	QMessageBox::information(0, "info", QString("Optimize done"));
-	ui.label_pie_avg_err->setText(QString("Avg: %1").arg(old_cost));
+	//ui.label_pie_avg_err->setText(QString("Avg: %1").arg(old_cost));
 	QPixmap pix_viz = QPixmap::fromImage(mat_to_qimage_ref(this->fillPie(), QImage::Format_RGB888).rgbSwapped());
 	scene_meme->refreshBackrop(pix_viz);
 }

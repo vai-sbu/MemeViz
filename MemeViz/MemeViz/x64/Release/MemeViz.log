@@ -1,3 +1,30 @@
-﻿  memeviz.cpp
-  MemeViz.vcxproj -> C:\Users\Darius\Google Drive\Research Projects\Data Memes\Code\MemeVizVS\MemeViz\x64\Release\MemeViz.exe
-  MemeViz.vcxproj -> C:\Users\Darius\Google Drive\Research Projects\Data Memes\Code\MemeVizVS\MemeViz\x64\Release\MemeViz.pdb (Full PDB)
+﻿  Moc'ing memeviz.h...
+  Uic'ing memeviz.ui...
+  Moc'ing distortionHelp.h...
+  Moc'ing segMask.h...
+  Rcc'ing memeviz.qrc...
+  RCC: Error in 'C:\Users\VAI-Lab\Desktop\MemeViz\MemeViz\MemeViz\memeviz.qrc': Cannot find file 'pie-sample.png'
+  
+  Uic'ing segMask.ui...
+  Rcc'ing segMask.qrc...
+  RCC: Error in 'C:\Users\VAI-Lab\Desktop\MemeViz\MemeViz\MemeViz\segMask.qrc': Cannot find file 'Resources/background.png'
+  
+  Uic'ing distortionHelp.ui...
+  csvparser.c
+  distortionHelp.cpp
+  moc_distortionHelp.cpp
+  moc_memeviz.cpp
+  moc_segMask.cpp
+  imgFilter.cpp
+  load_img.cpp
+  main.cpp
+  memeviz.cpp
+  scenememe.cpp
+  sceneseg.cpp
+  segMask.cpp
+  titleTextItem.cpp
+  Generating Code...
+  qrc_memeviz.cpp
+  qrc_segMask.cpp
+  Generating Code...
+  MemeViz.vcxproj -> C:\Users\VAI-Lab\Desktop\MemeViz\MemeViz\x64\Release\MemeViz.exe

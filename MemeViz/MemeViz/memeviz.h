@@ -5,6 +5,7 @@
 #include "scenememe.h"
 #include "imgFilter.h"
 #include "segMask.h"
+#include "distortionHelp.h"
 #include "titleTextItem.h"
 #include "load_img.h"
 
@@ -50,11 +51,13 @@ public:
 	
 	enum ChartType { None, Pie, Line, Bar };	
 	enum PieType { Rad, Area, OverLay, Arc };
+	enum DivType { Radial, Horizontal, Vertical };
 	enum BarType { BarArea, BarHeight };
 	
 private:
 	Ui::MemeVizClass ui;
 	segMask *segM;
+	distortionHelp *distH;
 
 	//View Objects
 	SceneMeme* scene_meme;	
@@ -109,6 +112,7 @@ private:
 	std::vector<cv::Point> pie_bighull;
 	int pieRot;
 	PieType pieType;
+	DivType divType;
 	QList<QColor> pieColors;
 	QList<QPushButton* > pieColorButtons;
 	bool optimize = false;
@@ -121,6 +125,13 @@ private:
 	double computePieError();
 	void generateNeighborAngles();
 	double acceptance_probability(double old_cost, double new_cost, double T);
+	
+	void fillSingleObject();
+	double computeHorizontal();
+	cv::Mat fillHorizontal();
+	double computeVertical();
+	cv::Mat fillVertical();
+
 
 	//Line Chart
 	QtCharts::QLineSeries *lineSeries;
@@ -190,7 +201,7 @@ private slots:
 	void on_pushButton_clear_clicked();
 	
 	//Pie Chart Controls
-	void on_pushButton_pie_clicked();
+	void on_pushButton_pieFill_clicked();
 	void on_pushButton_createMask_clicked();
 	void on_pushButton_pieRad_clicked();
 	void on_pushButton_pieAr_clicked();
@@ -216,16 +227,19 @@ private slots:
 	void on_pushButton_pieColor_13_clicked();
 	void on_pushButton_pieColor_14_clicked();
 	void on_pushButton_pieColor_15_clicked();
-	void on_pushButton_pieColor_16_clicked();
-	void on_pushButton_pieColor_17_clicked();
-	void on_pushButton_pieColor_18_clicked();
-	void on_pushButton_pieColor_19_clicked();
-	void on_pushButton_pieColor_20_clicked();
 
+
+	//Technique Select
+	void on_pushButton_FillStyle_clicked();
+	void on_pushButton_OverlayStyle_clicked();
+
+	void on_pushButton_fillRad_clicked();
+	void on_pushButton_fillVerti_clicked();
+	void on_pushButton_fillHori_clicked();	
 
 
 	//Line Chart Controls
-	void on_pushButton_line_clicked();
+	void on_pushButton_lineOverlay_clicked();
 	void on_spinBox_lineChartHeight_valueChanged();
 	void on_spinBox_lineChartWidth_valueChanged();
 	void on_pushButton_lineColor_clicked();
@@ -241,7 +255,6 @@ private slots:
 	void on_pushButton_lineSpline_clicked();
 
 	//Bar Chart Controls
-	void on_pushButton_bar_clicked();
 	void on_pushButton_barOverlay_clicked();
 	void on_pushButton_barFill_clicked();
 	void on_spinBox_barChartHeight_valueChanged();
@@ -262,18 +275,22 @@ private slots:
 	void on_spinBox_labelOffBar_valueChanged();
 	void on_doubleSpinBox_yMinBarFill_valueChanged();
 	void on_doubleSpinBox_yMaxBarFill_valueChanged();
-	void on_pushButton_barValue_clicked();
-	void on_pushButton_barPercentage_clicked();
+	//void on_pushButton_barValue_clicked();
+	//void on_pushButton_barPercentage_clicked();
 	void on_pushButton_barArea_clicked();
-	void on_pushButton_barHeight_clicked();
+	void on_pushButton_barLength_clicked();
 	
 	//Window Control
 	void on_pushButton_close_clicked();
+
+	//Distortion Help
+	void on_pushButton_distortionHelp_clicked();
 
 	//Logging
 	void write_text_to_log_file(const std::string &text);
 
 signals:
 	void sendBackDrop(cv::Mat bckdrp);
+	void sendDistortedVals(std::vector<std::string> t_label, std::vector<double> t_val, std::vector<double> errors);
 };
 #endif // MEMEVIZ_H

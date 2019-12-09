@@ -356,7 +356,7 @@ Marker</string>
     <enum>QFrame::NoFrame</enum>
    </property>
    <property name="text">
-    <string> MemeViz - Mask Generator</string>
+    <string> Mask Generator</string>
    </property>
   </widget>
   <widget class="QLabel" name="label_5">
